@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -9,6 +11,5 @@ class GenerateResponse(BaseModel):
     content: str
 
 
-class ExportResponse(BaseModel):
-    format: str
-    payload: str
+class ExportRequest(BaseModel):
+    test_cases: Any
