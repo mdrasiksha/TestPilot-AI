@@ -5,6 +5,10 @@ class GenerateRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=4000)
 
 
+class UserStoryGenerateRequest(BaseModel):
+    user_story: str = Field(..., min_length=1, max_length=4000)
+
+
 class GenerateResponse(BaseModel):
     content: str
 
