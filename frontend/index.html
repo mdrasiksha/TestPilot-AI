@@ -4,9 +4,120 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TestPilot AI</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem auto;
+        max-width: 760px;
+        padding: 0 1rem;
+        line-height: 1.4;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 140px;
+        margin: 0.5rem 0 1rem;
+      }
+
+      button {
+        margin-right: 0.5rem;
+        padding: 0.55rem 0.9rem;
+        cursor: pointer;
+      }
+
+      #result {
+        margin-top: 1rem;
+        border: 1px solid #ddd;
+        background: #f7f7f7;
+        padding: 0.8rem;
+        white-space: pre-wrap;
+      }
+
+      .muted {
+        color: #666;
+        font-size: 0.9rem;
+      }
+    </style>
   </head>
   <body>
-    <h1>TestPilot AI Frontend</h1>
-    <p>Backend is running when <code>/health</code> returns <code>{"status":"ok"}</code>.</p>
+    <h1>TestPilot AI</h1>
+
+    <label for="story">User story</label>
+    <textarea id="story" placeholder="As a user, I want to... so that..."></textarea>
+
+    <button id="generateBtn">Generate</button>
+    <button id="downloadBtn" disabled>Download CSV</button>
+
+    <p class="muted">POST request target: <code>/generate</code></p>
+
+    <pre id="result">No results yet.</pre>
+
+    <script>
+      const storyInput = document.getElementById('story');
+      const generateBtn = document.getElementById('generateBtn');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const resultEl = document.getElementById('result');
+
+      let latestResult = '';
+
+      function toCsv(content) {
+        const escaped = String(content).replace(/"/g, '""').replace(/\r?\n/g, '\\n');
+        return `content\n"${escaped}"\n`;
+      }
+
+      function downloadCsv(filename, csvText) {
+        const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      generateBtn.addEventListener('click', async () => {
+        const prompt = storyInput.value.trim();
+        if (!prompt) {
+          resultEl.textContent = 'Please enter a user story first.';
+          return;
+        }
+
+        generateBtn.disabled = true;
+        downloadBtn.disabled = true;
+        resultEl.textContent = 'Generating...';
+
+        try {
+          const response = await fetch('/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt }),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Request failed (${response.status}): ${errorText}`);
+          }
+
+          const data = await response.json();
+          latestResult = data.content || '';
+          resultEl.textContent = JSON.stringify(data, null, 2);
+          downloadBtn.disabled = !latestResult;
+        } catch (error) {
+          resultEl.textContent = `Error: ${error.message}`;
+          latestResult = '';
+          downloadBtn.disabled = true;
+        } finally {
+          generateBtn.disabled = false;
+        }
+      });
+
+      downloadBtn.addEventListener('click', () => {
+        if (!latestResult) return;
+        const csv = toCsv(latestResult);
+        downloadCsv('generated_result.csv', csv);
+      });
+    </script>
   </body>
 </html>
