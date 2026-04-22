@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from typing import Any
 
@@ -6,6 +7,7 @@ from openai import OpenAI
 
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+logger = logging.getLogger(__name__)
 
 _REQUIRED_KEYS = ["id", "title", "steps", "expected", "priority"]
 _VALID_PRIORITIES = {"high", "medium", "low"}
@@ -166,11 +168,20 @@ User Story:
         )
 
         content = response.choices[0].message.content or "[]"
+        logger.info("OpenAI raw response content: %s", content)
+        print("OPENAI RESPONSE CONTENT:", content)
         return extract_json(content)
 
-    except Exception as e:
-        print("OPENAI ERROR:", str(e))
-        raise Exception(f"OpenAI Error: {str(e)}")
+    except ValueError as exc:
+        error_message = f"Invalid model response: {str(exc)}"
+        logger.error("OPENAI PARSING ERROR: %s", error_message, exc_info=True)
+        print("OPENAI PARSING ERROR:", error_message)
+        raise RuntimeError(error_message) from exc
+    except Exception as exc:
+        error_message = f"OpenAI request failed: {str(exc)}"
+        logger.error("OPENAI ERROR: %s", error_message, exc_info=True)
+        print("OPENAI ERROR:", error_message)
+        raise RuntimeError(error_message) from exc
 
 
 class AIService:
