@@ -1,100 +1,71 @@
-import json
-from typing import Any
+import os
+import traceback
+
+from openai import OpenAI
+
+from app.utils.parser import parse_json_payload
 
 
-from app.core.config import get_settings
-from app.utils.parser import normalize_prompt, parse_json_payload
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-TEST_CASE_SCHEMA = [
-    {
-        "id": "",
-        "title": "",
-        "steps": "",
-        "expected": "",
-        "priority": "",
-    }
+def generate_test_cases(user_story: str) -> list[dict[str, str]]:
+    if not user_story or not user_story.strip():
+        raise ValueError("prompt must be a non-empty string.")
+
+    if not os.getenv("OPENAI_API_KEY"):
+        raise ValueError("Missing OpenAI API key. Set OPENAI_API_KEY in environment.")
+
+    try:
+        prompt = f"""
+You are a QA expert.
+
+Generate structured test cases in JSON format.
+
+User Story:
+{user_story}
+
+Return JSON:
+[
+  {{
+    "id": "TC_001",
+    "title": "",
+    "steps": "",
+    "expected": "",
+    "priority": "High/Medium/Low"
+  }}
 ]
+"""
 
-
-class AIService:
-    def __init__(self) -> None:
-        self.settings = get_settings()
-
-    def _build_prompt(self, user_story: str) -> str:
-        return (
-            "You are a senior QA engineer. Generate software test cases from the user story.\n"
-            "Include functional test cases, negative test cases, and edge cases.\n"
-            "Return ONLY strict JSON (no markdown, no explanation) as an array using this shape:\n"
-            f"{json.dumps(TEST_CASE_SCHEMA, indent=2)}\n"
-            "Rules:\n"
-            "- id must be unique and concise (e.g., TC-001).\n"
-            "- steps must be a single string with ordered actions.\n"
-            "- expected must clearly describe expected behavior.\n"
-            "- priority must be one of: High, Medium, Low.\n\n"
-            f"User story:\n{normalize_prompt(user_story)}"
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a senior QA engineer."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.3,
         )
 
-    @staticmethod
-    def _validate_test_cases(payload: Any) -> list[dict[str, str]]:
-        if not isinstance(payload, list):
-            raise ValueError("AI response must be a JSON array.")
-
-        required_keys = {"id", "title", "steps", "expected", "priority"}
-        valid_priorities = {"High", "Medium", "Low"}
-
-        for idx, item in enumerate(payload):
-            if not isinstance(item, dict):
-                raise ValueError(f"Test case at index {idx} is not a JSON object.")
-
-            missing = required_keys - set(item.keys())
-            if missing:
-                raise ValueError(f"Test case at index {idx} is missing keys: {sorted(missing)}")
-
-            for key in required_keys:
-                if not isinstance(item[key], str):
-                    raise ValueError(f"Test case at index {idx} has non-string field: {key}")
-
-            if item["priority"] not in valid_priorities:
-                raise ValueError(
-                    f"Test case at index {idx} has invalid priority: {item['priority']}"
-                )
-
-        return payload
-
-    def generate_test_cases(self, user_story: str) -> list[dict[str, str]]:
-        if not user_story or not user_story.strip():
-            raise ValueError("prompt must be a non-empty string.")
-
-        if not self.settings.openai_api_key:
-            raise ValueError("Missing OpenAI API key. Set OPENAI_API_KEY in environment.")
-
-        try:
-            from openai import OpenAI
-        except ImportError as exc:
-            raise RuntimeError("openai package is not installed.") from exc
-
-        client = OpenAI(api_key=self.settings.openai_api_key)
-
-        try:
-            response = client.responses.create(
-                model="gpt-4.1-mini",
-                input=self._build_prompt(user_story),
-                max_output_tokens=2000,
-            )
-            content = response.output_text
-        except Exception as exc:
-            raise RuntimeError("Failed to generate test cases from OpenAI API.") from exc
-
+        content = response.choices[0].message.content
         if not content:
             raise RuntimeError("OpenAI API returned an empty response.")
 
-        try:
-            parsed = parse_json_payload(content)
-        except json.JSONDecodeError as exc:
-            raise RuntimeError("OpenAI API response was not valid JSON.") from exc
+        payload = parse_json_payload(content)
+        if not isinstance(payload, list):
+            raise RuntimeError("OpenAI API response was not a JSON array.")
 
-        return self._validate_test_cases(parsed)
+        return payload
+
+    except Exception as e:
+        print("OPENAI ERROR:", str(e))
+        print(traceback.format_exc())
+        raise RuntimeError(f"OpenAI Error: {str(e)}") from e
+
+
+class AIService:
+    @staticmethod
+    def generate_test_cases(user_story: str) -> list[dict[str, str]]:
+        return generate_test_cases(user_story)
 
 
 ai_service = AIService()
