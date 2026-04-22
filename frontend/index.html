@@ -8,15 +8,18 @@
       :root {
         --primary: #2563eb;
         --primary-hover: #1d4ed8;
-        --bg: #f9fafb;
+        --background: #f8fafc;
         --card: #ffffff;
-        --text: #111827;
-        --muted: #6b7280;
-        --border: #e5e7eb;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
         --danger-bg: #fef2f2;
+        --danger-border: #fecaca;
         --danger-text: #b91c1c;
-        --success-bg: #eff6ff;
-        --shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+        --high: #ef4444;
+        --medium: #f59e0b;
+        --low: #16a34a;
+        --shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.08);
       }
 
       * {
@@ -25,138 +28,182 @@
 
       body {
         margin: 0;
-        font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
         color: var(--text);
-        background: var(--bg);
+        background: radial-gradient(circle at top, #eef4ff 0%, var(--background) 40%);
       }
 
-      .page {
-        min-height: 100vh;
-        padding: 48px 20px;
+      .shell {
+        width: min(1160px, calc(100% - 40px));
+        margin: 28px auto 40px;
       }
 
-      .header {
-        max-width: 900px;
-        margin: 0 auto 24px;
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid #e2e8f080;
+        backdrop-filter: blur(8px);
+        border-radius: 16px;
+        padding: 14px 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+        margin-bottom: 24px;
       }
 
       .logo {
         margin: 0;
-        font-size: 2rem;
+        font-size: 1.1rem;
         font-weight: 700;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.01em;
       }
 
       .tagline {
-        margin: 6px 0 0;
         color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 500;
       }
 
-      .card {
-        max-width: 900px;
-        margin: 0 auto;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        box-shadow: var(--shadow);
-        padding: 28px;
-      }
-
-      .section {
+      .hero {
+        text-align: center;
         margin-bottom: 24px;
       }
 
-      .section:last-child {
-        margin-bottom: 0;
+      .hero h2 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        letter-spacing: -0.03em;
       }
 
-      label {
-        display: block;
-        font-weight: 600;
+      .hero p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 1.02rem;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 20px;
+        align-items: start;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow-soft);
+        padding: 24px;
+      }
+
+      .section + .section {
+        margin-top: 22px;
+      }
+
+      .section-title {
+        margin: 0 0 10px;
+        font-size: 1rem;
+        font-weight: 650;
+      }
+
+      .label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
         margin-bottom: 10px;
+      }
+
+      .label strong {
+        font-size: 0.95rem;
+      }
+
+      .char-count {
+        color: var(--muted);
+        font-size: 0.82rem;
       }
 
       textarea {
         width: 100%;
         min-height: 170px;
-        resize: vertical;
+        padding: 14px 15px;
         border-radius: 12px;
         border: 1px solid var(--border);
-        padding: 14px;
-        font: inherit;
-        line-height: 1.5;
-        color: var(--text);
         background: #fff;
+        color: var(--text);
+        font: inherit;
+        line-height: 1.45;
+        resize: vertical;
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
       textarea:focus {
         outline: none;
         border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
       }
 
-      .story-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
+      .hint {
         margin-top: 8px;
         color: var(--muted);
-        font-size: 0.875rem;
+        font-size: 0.82rem;
       }
 
       .actions {
         display: flex;
-        gap: 12px;
         flex-wrap: wrap;
+        gap: 10px;
       }
 
       .btn {
-        border: 1px solid transparent;
         border-radius: 10px;
-        padding: 10px 16px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #1e293b;
+        font: inherit;
+        font-size: 0.9rem;
         font-weight: 600;
-        font-size: 0.95rem;
+        padding: 10px 14px;
         cursor: pointer;
-        transition: transform 0.08s ease, background-color 0.2s ease, border-color 0.2s ease,
-          opacity 0.2s ease;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+          transform 0.08s ease, box-shadow 0.2s ease;
       }
 
-      .btn:active {
+      .btn:hover:not(:disabled) {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+
+      .btn:active:not(:disabled) {
         transform: translateY(1px);
       }
 
       .btn-primary {
+        border-color: var(--primary);
         background: var(--primary);
         color: #fff;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
       }
 
       .btn-primary:hover:not(:disabled) {
         background: var(--primary-hover);
-      }
-
-      .btn-secondary {
-        border-color: var(--border);
-        background: #fff;
-        color: #1f2937;
-      }
-
-      .btn-secondary:hover:not(:disabled) {
-        background: #f3f4f6;
+        border-color: var(--primary-hover);
       }
 
       .btn:disabled {
-        opacity: 0.55;
+        opacity: 0.52;
         cursor: not-allowed;
+        box-shadow: none;
       }
 
       .loading {
         display: none;
-        margin-top: 12px;
         align-items: center;
         gap: 10px;
+        margin-top: 12px;
         color: var(--muted);
+        font-size: 0.9rem;
       }
 
       .loading.visible {
@@ -166,10 +213,10 @@
       .spinner {
         width: 16px;
         height: 16px;
-        border: 2px solid #dbeafe;
-        border-top-color: var(--primary);
         border-radius: 50%;
-        animation: spin 0.8s linear infinite;
+        border: 2px solid #bfdbfe;
+        border-top-color: var(--primary);
+        animation: spin 0.7s linear infinite;
       }
 
       @keyframes spin {
@@ -180,166 +227,251 @@
 
       .error {
         display: none;
-        margin-top: 10px;
-        border: 1px solid #fecaca;
+        margin-top: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--danger-border);
         background: var(--danger-bg);
         color: var(--danger-text);
-        border-radius: 10px;
         padding: 10px 12px;
+        font-size: 0.9rem;
       }
 
       .error.visible {
         display: block;
       }
 
-      .output-wrap {
+      .table-shell {
         border: 1px solid var(--border);
         border-radius: 12px;
         overflow: hidden;
+        background: #fff;
+      }
+
+      .table-scroll {
+        max-height: 370px;
+        overflow: auto;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.94rem;
+        font-size: 0.9rem;
       }
 
       th,
       td {
-        border: 1px solid var(--border);
-        padding: 10px;
+        border-bottom: 1px solid var(--border);
+        padding: 11px 12px;
         text-align: left;
         vertical-align: top;
       }
 
       th {
-        background: #f3f4f6;
-        font-size: 0.85rem;
-        letter-spacing: 0.02em;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #f8fafc;
+        color: #334155;
         text-transform: uppercase;
-        color: #374151;
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
       }
 
-      tbody tr:nth-child(even) {
-        background: #fafafa;
+      tbody tr:hover {
+        background: #f8fbff;
       }
 
-      .steps-list {
+      .steps {
         margin: 0;
         padding-left: 18px;
       }
 
-      .empty-state {
-        padding: 18px;
-        color: var(--muted);
-        background: var(--success-bg);
+      .empty {
+        border: 1px dashed #cbd5e1;
+        background: #f8fafc;
         border-radius: 12px;
+        text-align: center;
+        color: var(--muted);
+        padding: 20px;
+      }
+
+      .badge {
+        display: inline-flex;
+        border-radius: 999px;
+        padding: 3px 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      .badge.high {
+        color: #991b1b;
+        background: #fee2e2;
+      }
+
+      .badge.medium {
+        color: #92400e;
+        background: #fef3c7;
+      }
+
+      .badge.low {
+        color: #166534;
+        background: #dcfce7;
+      }
+
+      .history-card h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .history-sub {
+        margin: 6px 0 12px;
+        font-size: 0.85rem;
+        color: var(--muted);
       }
 
       .history-list {
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        max-height: 220px;
-        overflow-y: auto;
-        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 635px;
+        overflow: auto;
       }
 
       .history-item {
-        padding: 10px 12px;
-        border-bottom: 1px solid var(--border);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px;
+        background: #fff;
         cursor: pointer;
-        font-size: 0.9rem;
-      }
-
-      .history-item:last-child {
-        border-bottom: none;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
       }
 
       .history-item:hover {
-        background: #f3f4f6;
+        border-color: #93c5fd;
+        background: #f8fbff;
+      }
+
+      .history-item p {
+        margin: 0;
+        color: #1e293b;
+        font-size: 0.87rem;
+        line-height: 1.35;
+      }
+
+      .history-item small {
+        margin-top: 6px;
+        display: block;
+        color: var(--muted);
       }
 
       .history-empty {
-        padding: 12px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
         color: var(--muted);
-        font-size: 0.9rem;
+        font-size: 0.86rem;
       }
 
-      @media (max-width: 768px) {
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .history-list {
+          max-height: 260px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .shell {
+          width: calc(100% - 22px);
+          margin-top: 14px;
+        }
+
         .card {
-          padding: 18px;
+          padding: 16px;
+          border-radius: 14px;
         }
 
-        th,
-        td {
-          min-width: 120px;
+        .actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
         }
 
-        .output-scroll {
-          overflow-x: auto;
+        .btn {
+          width: 100%;
         }
       }
     </style>
   </head>
   <body>
-    <main class="page">
-      <header class="header">
+    <main class="shell">
+      <header class="topbar">
         <h1 class="logo">TestPilot AI</h1>
-        <p class="tagline">AI-powered QA Test Case Generator</p>
+        <span class="tagline">AI QA Generator</span>
       </header>
 
-      <section class="card">
-        <div class="section">
-          <label for="story">Enter User Story</label>
-          <textarea
-            id="story"
-            placeholder="Example: As a registered user, I want to reset my password via email so that I can regain access to my account."
-          ></textarea>
-          <div class="story-meta">
-            <span>Tip: Include role, action, and outcome for better test cases.</span>
-            <span id="charCount">0 characters</span>
-          </div>
-        </div>
+      <section class="hero">
+        <h2>Generate QA Test Cases in Seconds</h2>
+        <p>Turn user stories into structured test cases instantly</p>
+      </section>
 
-        <div class="section">
-          <div class="actions">
-            <button id="generateBtn" class="btn btn-primary">Generate Test Cases</button>
-            <button id="downloadBtn" class="btn btn-secondary" disabled>Download CSV</button>
-            <button id="downloadExcelBtn" class="btn btn-secondary" disabled>Download Excel</button>
-            <button id="copyBtn" class="btn btn-secondary" disabled>Copy Test Cases</button>
-            <button id="saveHistoryBtn" class="btn btn-secondary" disabled>Save History</button>
+      <section class="layout">
+        <article class="card app-card">
+          <div class="section">
+            <div class="label">
+              <strong>User Story</strong>
+              <span id="charCount" class="char-count">0 characters</span>
+            </div>
+            <textarea
+              id="story"
+              placeholder="Example: As a project manager, I want to assign tasks with due dates so that team members can track and complete work on time."
+            ></textarea>
+            <p class="hint">Tip: Include role, action, and expected outcome for better results.</p>
           </div>
-          <div id="loading" class="loading" aria-live="polite">
-            <span class="spinner" aria-hidden="true"></span>
-            <span>Generating...</span>
+
+          <div class="section">
+            <div class="actions">
+              <button id="generateBtn" class="btn btn-primary">Generate</button>
+              <button id="downloadExcelBtn" class="btn">Download Excel</button>
+              <button id="copyBtn" class="btn">Copy</button>
+              <button id="saveBtn" class="btn">Save</button>
+            </div>
+            <div id="loading" class="loading" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Generating test cases...</span>
+            </div>
+            <div id="error" class="error" role="alert"></div>
           </div>
-          <div id="error" class="error" role="alert"></div>
-        </div>
 
-        <div class="section">
-          <h2 style="margin: 0 0 10px; font-size: 1.1rem">Generated Test Cases</h2>
-          <div id="output" class="empty-state">No test cases generated yet.</div>
-        </div>
+          <div class="section">
+            <h3 class="section-title">Output</h3>
+            <div id="output" class="empty">No test cases yet</div>
+          </div>
+        </article>
 
-        <div class="section">
-          <h2 style="margin: 0 0 10px; font-size: 1.1rem">History</h2>
+        <aside class="card history-card">
+          <h3>History</h3>
+          <p class="history-sub">Click an item to reload prompt and results.</p>
           <div id="history" class="history-list"></div>
-        </div>
+        </aside>
       </section>
     </main>
 
     <script>
       const API_BASE = 'https://testpilot-ai-ziwc.onrender.com/api/v1';
+      const HISTORY_KEY = 'testpilot-history';
+      const MAX_HISTORY = 20;
 
       const storyInput = document.getElementById('story');
       const charCount = document.getElementById('charCount');
       const generateBtn = document.getElementById('generateBtn');
-      const downloadBtn = document.getElementById('downloadBtn');
       const downloadExcelBtn = document.getElementById('downloadExcelBtn');
       const copyBtn = document.getElementById('copyBtn');
-      const saveHistoryBtn = document.getElementById('saveHistoryBtn');
-      const output = document.getElementById('output');
+      const saveBtn = document.getElementById('saveBtn');
       const loading = document.getElementById('loading');
+      const output = document.getElementById('output');
       const errorBox = document.getElementById('error');
       const historyContainer = document.getElementById('history');
 
@@ -358,31 +490,9 @@
         charCount.textContent = `${storyInput.value.length} characters`;
       }
 
-      function setLoadingState(isLoading) {
-        generateBtn.disabled = isLoading;
-        loading.classList.toggle('visible', isLoading);
-        if (isLoading) {
-          generateBtn.textContent = 'Generating...';
-        } else {
-          generateBtn.textContent = 'Generate Test Cases';
-        }
-      }
-
-      function setCaseActionButtonsDisabled(disabled) {
-        downloadBtn.disabled = disabled;
-        downloadExcelBtn.disabled = disabled;
-        copyBtn.disabled = disabled;
-        saveHistoryBtn.disabled = disabled;
-      }
-
       function setError(message = '') {
         errorBox.textContent = message;
         errorBox.classList.toggle('visible', Boolean(message));
-      }
-
-      function clearOutput() {
-        output.className = 'empty-state';
-        output.textContent = 'No test cases generated yet.';
       }
 
       function normalizeCases(payload) {
@@ -404,30 +514,41 @@
 
       function normalizeSteps(steps) {
         if (Array.isArray(steps)) return steps;
-        if (typeof steps === 'string') {
-          return steps
-            .split(/\n|;|\d+\./)
-            .map((step) => step.trim())
-            .filter(Boolean);
-        }
-        return [];
+        if (typeof steps !== 'string') return [];
+        return steps
+          .split(/\n|;|\d+\./)
+          .map((step) => step.trim())
+          .filter(Boolean);
       }
 
-      function renderTable(cases) {
+      function priorityClass(priority) {
+        const value = String(priority || 'Medium').toLowerCase();
+        if (value.includes('high')) return 'high';
+        if (value.includes('low')) return 'low';
+        return 'medium';
+      }
+
+      function renderEmptyState() {
+        output.className = 'empty';
+        output.textContent = 'No test cases yet';
+      }
+
+      function renderOutput(cases) {
         if (!cases.length) {
-          clearOutput();
+          renderEmptyState();
           return;
         }
 
         const rows = cases
           .map((testCase, index) => {
             const id = testCase.id || testCase.test_id || `TC-${index + 1}`;
-            const title = testCase.title || testCase.name || 'Untitled Test Case';
-            const expected = testCase.expected || testCase.expected_result || testCase.result || '';
+            const title = testCase.title || testCase.name || 'Untitled test case';
+            const expected = testCase.expected || testCase.expected_result || testCase.result || '-';
             const priority = testCase.priority || testCase.severity || 'Medium';
+            const pClass = priorityClass(priority);
             const steps = normalizeSteps(testCase.steps || testCase.procedure || testCase.action_items);
             const stepsHtml = steps.length
-              ? `<ul class="steps-list">${steps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ul>`
+              ? `<ul class="steps">${steps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ul>`
               : '<span>-</span>';
 
             return `
@@ -435,28 +556,105 @@
                 <td>${escapeHtml(id)}</td>
                 <td>${escapeHtml(title)}</td>
                 <td>${stepsHtml}</td>
-                <td>${escapeHtml(expected || '-')}</td>
-                <td>${escapeHtml(priority)}</td>
+                <td>${escapeHtml(expected)}</td>
+                <td><span class="badge ${pClass}">${escapeHtml(priority)}</span></td>
               </tr>
             `;
           })
           .join('');
 
-        output.className = 'output-wrap output-scroll';
+        output.className = 'table-shell';
         output.innerHTML = `
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Steps</th>
-                <th>Expected</th>
-                <th>Priority</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Steps</th>
+                  <th>Expected</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
         `;
+      }
+
+      function setActionButtonsDisabled(disabled) {
+        downloadExcelBtn.disabled = disabled;
+        copyBtn.disabled = disabled;
+        saveBtn.disabled = disabled;
+      }
+
+      function setLoadingState(isLoading) {
+        generateBtn.disabled = isLoading;
+        if (isLoading) {
+          setActionButtonsDisabled(true);
+        } else {
+          setActionButtonsDisabled(latestData.length === 0);
+        }
+        loading.classList.toggle('visible', isLoading);
+      }
+
+      function getHistory() {
+        try {
+          const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+          return Array.isArray(history) ? history : [];
+        } catch (_error) {
+          return [];
+        }
+      }
+
+      function writeHistory(history) {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+      }
+
+      function saveHistoryEntry(prompt, cases) {
+        const existing = getHistory().filter((item) => item.prompt !== prompt);
+        const entry = {
+          id: Date.now(),
+          prompt,
+          data: cases,
+          createdAt: new Date().toISOString(),
+        };
+
+        writeHistory([entry, ...existing]);
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const history = getHistory();
+        historyContainer.innerHTML = '';
+
+        if (!history.length) {
+          historyContainer.innerHTML = '<div class="history-empty">No saved prompts yet.</div>';
+          return;
+        }
+
+        history.forEach((item) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'history-item';
+
+          const dateLabel = new Date(item.createdAt).toLocaleString();
+          button.innerHTML = `
+            <p>${escapeHtml(item.prompt)}</p>
+            <small>${escapeHtml(dateLabel)}</small>
+          `;
+
+          button.addEventListener('click', () => {
+            storyInput.value = item.prompt || '';
+            updateCharCount();
+            latestData = Array.isArray(item.data) ? item.data : [];
+            renderOutput(latestData);
+            setActionButtonsDisabled(latestData.length === 0);
+            setError('');
+          });
+
+          historyContainer.appendChild(button);
+        });
       }
 
       async function generateTestCases() {
@@ -466,10 +664,9 @@
           return;
         }
 
-        latestData = [];
-        setCaseActionButtonsDisabled(true);
         setError('');
-        clearOutput();
+        latestData = [];
+        renderEmptyState();
         setLoadingState(true);
 
         try {
@@ -486,35 +683,32 @@
 
           const payload = await response.json();
           latestData = normalizeCases(payload);
-          renderTable(latestData);
-          setCaseActionButtonsDisabled(latestData.length === 0);
-
-          if (latestData.length) {
-            saveHistory(prompt, latestData);
-          }
+          renderOutput(latestData);
 
           if (!latestData.length) {
-            setError('No structured test cases were returned. Please refine your user story and try again.');
+            setError('No structured test cases were returned. Please refine your story and try again.');
+          } else {
+            saveHistoryEntry(prompt, latestData);
           }
         } catch (error) {
+          renderEmptyState();
           setError(error.message || 'An unexpected error occurred while generating test cases.');
-          clearOutput();
         } finally {
           setLoadingState(false);
         }
       }
 
-      async function downloadCsv() {
-        if (!Array.isArray(latestData) || latestData.length === 0) {
+      async function downloadExcel() {
+        if (!latestData.length) {
           setError('No test cases available to export.');
           return;
         }
 
-        downloadBtn.disabled = true;
         setError('');
+        downloadExcelBtn.disabled = true;
 
         try {
-          const response = await fetch(`${API_BASE}/export`, {
+          const response = await fetch(`${API_BASE}/export-excel`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(latestData),
@@ -527,106 +721,13 @@
 
           const blob = await response.blob();
           const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          const disposition = response.headers.get('content-disposition') || '';
-          const matchedName = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
-          const fileName = decodeURIComponent(matchedName?.[1] || matchedName?.[2] || 'test-cases.csv');
-
-          link.href = url;
-          link.download = fileName;
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = 'test-cases.xlsx';
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
           URL.revokeObjectURL(url);
-        } catch (error) {
-          setError(error.message || 'An unexpected error occurred while downloading CSV.');
-        } finally {
-          setCaseActionButtonsDisabled(latestData.length === 0);
-        }
-      }
-
-
-      function saveHistory(prompt, data) {
-        const history = JSON.parse(localStorage.getItem('history') || '[]');
-
-        history.unshift({
-          prompt,
-          data,
-          time: new Date().toLocaleString(),
-        });
-
-        localStorage.setItem('history', JSON.stringify(history));
-        loadHistory();
-      }
-
-      function loadHistory() {
-        const history = JSON.parse(localStorage.getItem('history') || '[]');
-
-        historyContainer.innerHTML = '';
-
-        if (!history.length) {
-          historyContainer.innerHTML = '<div class="history-empty">No saved history yet.</div>';
-          return;
-        }
-
-        history.forEach((item) => {
-          const div = document.createElement('div');
-          div.className = 'history-item';
-          div.innerText = `${item.time} - ${item.prompt}`;
-
-          div.onclick = () => {
-            latestData = Array.isArray(item.data) ? item.data : [];
-            renderTable(latestData);
-            setCaseActionButtonsDisabled(latestData.length === 0);
-            setError('');
-          };
-
-          historyContainer.appendChild(div);
-        });
-      }
-
-      function copyTestCases() {
-        if (!Array.isArray(latestData) || latestData.length === 0) {
-          setError('No test cases available to copy.');
-          return;
-        }
-
-        const text = JSON.stringify(latestData, null, 2);
-        navigator.clipboard.writeText(text);
-        alert('Copied to clipboard');
-      }
-
-      async function downloadExcel() {
-        if (!Array.isArray(latestData) || latestData.length === 0) {
-          setError('No test cases available to export.');
-          return;
-        }
-
-        downloadExcelBtn.disabled = true;
-        setError('');
-
-        try {
-          const res = await fetch(`${API_BASE}/export-excel`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(latestData),
-          });
-
-          if (!res.ok) {
-            const message = await res.text();
-            throw new Error(`Export failed (${res.status}): ${message || 'Unknown error'}`);
-          }
-
-          const blob = await res.blob();
-          const url = window.URL.createObjectURL(blob);
-
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'testcases.xlsx';
-          a.click();
-          window.URL.revokeObjectURL(url);
         } catch (error) {
           setError(error.message || 'An unexpected error occurred while downloading Excel.');
         } finally {
@@ -634,32 +735,45 @@
         }
       }
 
-      function saveLatestHistory() {
-        const prompt = storyInput.value.trim();
-        if (!prompt) {
-          setError('Please enter a user story before saving history.');
+      async function copyResults() {
+        if (!latestData.length) {
+          setError('No test cases available to copy.');
           return;
         }
 
-        if (!Array.isArray(latestData) || latestData.length === 0) {
+        try {
+          await navigator.clipboard.writeText(JSON.stringify(latestData, null, 2));
+          setError('');
+        } catch (_error) {
+          setError('Clipboard access was blocked by the browser.');
+        }
+      }
+
+      function saveCurrentToHistory() {
+        const prompt = storyInput.value.trim();
+        if (!prompt) {
+          setError('Please enter a user story before saving.');
+          return;
+        }
+
+        if (!latestData.length) {
           setError('No test cases available to save.');
           return;
         }
 
-        saveHistory(prompt, latestData);
+        saveHistoryEntry(prompt, latestData);
         setError('');
       }
 
       storyInput.addEventListener('input', updateCharCount);
       generateBtn.addEventListener('click', generateTestCases);
-      downloadBtn.addEventListener('click', downloadCsv);
       downloadExcelBtn.addEventListener('click', downloadExcel);
-      copyBtn.addEventListener('click', copyTestCases);
-      saveHistoryBtn.addEventListener('click', saveLatestHistory);
+      copyBtn.addEventListener('click', copyResults);
+      saveBtn.addEventListener('click', saveCurrentToHistory);
 
-      setCaseActionButtonsDisabled(true);
       updateCharCount();
-      loadHistory();
+      renderHistory();
+      setActionButtonsDisabled(true);
     </script>
   </body>
 </html>
