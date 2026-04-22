@@ -302,7 +302,7 @@
       const loading = document.getElementById('loading');
       const errorBox = document.getElementById('error');
 
-      let latestCases = [];
+      let latestData = [];
 
       function escapeHtml(value) {
         return String(value)
@@ -418,7 +418,7 @@
           return;
         }
 
-        latestCases = [];
+        latestData = [];
         downloadBtn.disabled = true;
         setError('');
         clearOutput();
@@ -437,11 +437,11 @@
           }
 
           const payload = await response.json();
-          latestCases = normalizeCases(payload);
-          renderTable(latestCases);
-          downloadBtn.disabled = latestCases.length === 0;
+          latestData = normalizeCases(payload);
+          renderTable(latestData);
+          downloadBtn.disabled = latestData.length === 0;
 
-          if (!latestCases.length) {
+          if (!latestData.length) {
             setError('No structured test cases were returned. Please refine your user story and try again.');
           }
         } catch (error) {
@@ -453,9 +453,8 @@
       }
 
       async function downloadCsv() {
-        const prompt = storyInput.value.trim();
-        if (!prompt) {
-          setError('Please enter a user story before downloading CSV.');
+        if (!Array.isArray(latestData) || latestData.length === 0) {
+          setError('No test cases available to export.');
           return;
         }
 
@@ -466,7 +465,7 @@
           const response = await fetch(`${API_BASE}/export`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, test_cases: latestCases }),
+            body: JSON.stringify(latestData),
           });
 
           if (!response.ok) {
@@ -490,7 +489,7 @@
         } catch (error) {
           setError(error.message || 'An unexpected error occurred while downloading CSV.');
         } finally {
-          downloadBtn.disabled = latestCases.length === 0;
+          downloadBtn.disabled = latestData.length === 0;
         }
       }
 
