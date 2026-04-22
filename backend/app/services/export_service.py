@@ -1,10 +1,8 @@
-import json
-from typing import Any
+import pandas as pd
 
 
-class ExportService:
-    def to_json(self, payload: Any) -> str:
-        return json.dumps(payload, ensure_ascii=False, indent=2)
-
-
-export_service = ExportService()
+def generate_csv(data):
+    df = pd.DataFrame(data)
+    file_path = "testcases.csv"
+    df.to_csv(file_path, index=False)
+    return file_path
