@@ -5,122 +5,500 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TestPilot AI</title>
     <style>
+      :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --bg: #f9fafb;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --danger-bg: #fef2f2;
+        --danger-text: #b91c1c;
+        --success-bg: #eff6ff;
+        --shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: Arial, sans-serif;
-        margin: 2rem auto;
-        max-width: 760px;
-        padding: 0 1rem;
-        line-height: 1.4;
+        margin: 0;
+        font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      .page {
+        min-height: 100vh;
+        padding: 48px 20px;
+      }
+
+      .header {
+        max-width: 900px;
+        margin: 0 auto 24px;
+      }
+
+      .logo {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .tagline {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+
+      .card {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+
+      .section {
+        margin-bottom: 24px;
+      }
+
+      .section:last-child {
+        margin-bottom: 0;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 10px;
       }
 
       textarea {
         width: 100%;
-        min-height: 140px;
-        margin: 0.5rem 0 1rem;
+        min-height: 170px;
+        resize: vertical;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: 14px;
+        font: inherit;
+        line-height: 1.5;
+        color: var(--text);
+        background: #fff;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
-      button {
-        margin-right: 0.5rem;
-        padding: 0.55rem 0.9rem;
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+      }
+
+      .story-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 10px 16px;
+        font-weight: 600;
+        font-size: 0.95rem;
         cursor: pointer;
+        transition: transform 0.08s ease, background-color 0.2s ease, border-color 0.2s ease,
+          opacity 0.2s ease;
       }
 
-      #result {
-        margin-top: 1rem;
-        border: 1px solid #ddd;
-        background: #f7f7f7;
-        padding: 0.8rem;
-        white-space: pre-wrap;
+      .btn:active {
+        transform: translateY(1px);
       }
 
-      .muted {
-        color: #666;
-        font-size: 0.9rem;
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-hover);
+      }
+
+      .btn-secondary {
+        border-color: var(--border);
+        background: #fff;
+        color: #1f2937;
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: #f3f4f6;
+      }
+
+      .btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .loading {
+        display: none;
+        margin-top: 12px;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+      }
+
+      .loading.visible {
+        display: inline-flex;
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #dbeafe;
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        display: none;
+        margin-top: 10px;
+        border: 1px solid #fecaca;
+        background: var(--danger-bg);
+        color: var(--danger-text);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+
+      .error.visible {
+        display: block;
+      }
+
+      .output-wrap {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.94rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f3f4f6;
+        font-size: 0.85rem;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #374151;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #fafafa;
+      }
+
+      .steps-list {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .empty-state {
+        padding: 18px;
+        color: var(--muted);
+        background: var(--success-bg);
+        border-radius: 12px;
+      }
+
+      @media (max-width: 768px) {
+        .card {
+          padding: 18px;
+        }
+
+        th,
+        td {
+          min-width: 120px;
+        }
+
+        .output-scroll {
+          overflow-x: auto;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>TestPilot AI</h1>
+    <main class="page">
+      <header class="header">
+        <h1 class="logo">TestPilot AI</h1>
+        <p class="tagline">AI-powered QA Test Case Generator</p>
+      </header>
 
-    <label for="story">User story</label>
-    <textarea id="story" placeholder="As a user, I want to... so that..."></textarea>
+      <section class="card">
+        <div class="section">
+          <label for="story">Enter User Story</label>
+          <textarea
+            id="story"
+            placeholder="Example: As a registered user, I want to reset my password via email so that I can regain access to my account."
+          ></textarea>
+          <div class="story-meta">
+            <span>Tip: Include role, action, and outcome for better test cases.</span>
+            <span id="charCount">0 characters</span>
+          </div>
+        </div>
 
-    <button id="generateBtn">Generate</button>
-    <button id="downloadBtn" disabled>Download CSV</button>
+        <div class="section">
+          <div class="actions">
+            <button id="generateBtn" class="btn btn-primary">Generate Test Cases</button>
+            <button id="downloadBtn" class="btn btn-secondary" disabled>Download CSV</button>
+          </div>
+          <div id="loading" class="loading" aria-live="polite">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Generating...</span>
+          </div>
+          <div id="error" class="error" role="alert"></div>
+        </div>
 
-    <p class="muted">POST request target: <code>https://testpilot-ai-ziwc.onrender.com/api/v1/generate</code></p>
-
-    <pre id="result">No results yet.</pre>
+        <div class="section">
+          <h2 style="margin: 0 0 10px; font-size: 1.1rem">Generated Test Cases</h2>
+          <div id="output" class="empty-state">No test cases generated yet.</div>
+        </div>
+      </section>
+    </main>
 
     <script>
+      const API_BASE = 'https://testpilot-ai-ziwc.onrender.com/api/v1';
+
       const storyInput = document.getElementById('story');
+      const charCount = document.getElementById('charCount');
       const generateBtn = document.getElementById('generateBtn');
       const downloadBtn = document.getElementById('downloadBtn');
-      const resultEl = document.getElementById('result');
+      const output = document.getElementById('output');
+      const loading = document.getElementById('loading');
+      const errorBox = document.getElementById('error');
 
-      let latestResult = '';
+      let latestCases = [];
 
-      function toCsv(content) {
-        const escaped = String(content).replace(/"/g, '""').replace(/\r?\n/g, '\\n');
-        return `content\n"${escaped}"\n`;
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
       }
 
-      function downloadCsv(filename, csvText) {
-        const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+      function updateCharCount() {
+        charCount.textContent = `${storyInput.value.length} characters`;
       }
 
-      generateBtn.addEventListener('click', async () => {
-        const prompt = storyInput.value.trim();
-        if (!prompt) {
-          resultEl.textContent = 'Please enter a user story first.';
+      function setLoadingState(isLoading) {
+        generateBtn.disabled = isLoading;
+        loading.classList.toggle('visible', isLoading);
+        if (isLoading) {
+          generateBtn.textContent = 'Generating...';
+        } else {
+          generateBtn.textContent = 'Generate Test Cases';
+        }
+      }
+
+      function setError(message = '') {
+        errorBox.textContent = message;
+        errorBox.classList.toggle('visible', Boolean(message));
+      }
+
+      function clearOutput() {
+        output.className = 'empty-state';
+        output.textContent = 'No test cases generated yet.';
+      }
+
+      function normalizeCases(payload) {
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload?.test_cases)) return payload.test_cases;
+        if (Array.isArray(payload?.cases)) return payload.cases;
+        if (Array.isArray(payload?.data)) return payload.data;
+        if (typeof payload?.content === 'string') {
+          try {
+            const parsed = JSON.parse(payload.content);
+            if (Array.isArray(parsed)) return parsed;
+            if (Array.isArray(parsed?.test_cases)) return parsed.test_cases;
+          } catch (_error) {
+            return [];
+          }
+        }
+        return [];
+      }
+
+      function normalizeSteps(steps) {
+        if (Array.isArray(steps)) return steps;
+        if (typeof steps === 'string') {
+          return steps
+            .split(/\n|;|\d+\./)
+            .map((step) => step.trim())
+            .filter(Boolean);
+        }
+        return [];
+      }
+
+      function renderTable(cases) {
+        if (!cases.length) {
+          clearOutput();
           return;
         }
 
-        generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating...';
+        const rows = cases
+          .map((testCase, index) => {
+            const id = testCase.id || testCase.test_id || `TC-${index + 1}`;
+            const title = testCase.title || testCase.name || 'Untitled Test Case';
+            const expected = testCase.expected || testCase.expected_result || testCase.result || '';
+            const priority = testCase.priority || testCase.severity || 'Medium';
+            const steps = normalizeSteps(testCase.steps || testCase.procedure || testCase.action_items);
+            const stepsHtml = steps.length
+              ? `<ul class="steps-list">${steps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ul>`
+              : '<span>-</span>';
+
+            return `
+              <tr>
+                <td>${escapeHtml(id)}</td>
+                <td>${escapeHtml(title)}</td>
+                <td>${stepsHtml}</td>
+                <td>${escapeHtml(expected || '-')}</td>
+                <td>${escapeHtml(priority)}</td>
+              </tr>
+            `;
+          })
+          .join('');
+
+        output.className = 'output-wrap output-scroll';
+        output.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Steps</th>
+                <th>Expected</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      }
+
+      async function generateTestCases() {
+        const prompt = storyInput.value.trim();
+        if (!prompt) {
+          setError('Please enter a user story before generating test cases.');
+          return;
+        }
+
+        latestCases = [];
         downloadBtn.disabled = true;
-        latestResult = '';
-        resultEl.textContent = '';
+        setError('');
+        clearOutput();
+        setLoadingState(true);
 
         try {
-          const response = await fetch('https://testpilot-ai-ziwc.onrender.com/api/v1/generate', {
+          const response = await fetch(`${API_BASE}/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt }),
           });
 
           if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Request failed (${response.status}): ${errorText}`);
+            const message = await response.text();
+            throw new Error(`Generate failed (${response.status}): ${message || 'Unknown error'}`);
           }
 
-          const data = await response.json();
-          latestResult = data.content || '';
-          resultEl.textContent = JSON.stringify(data, null, 2);
-          downloadBtn.disabled = !latestResult;
-        } catch (error) {
-          resultEl.textContent = `Error: ${error.message}`;
-          latestResult = '';
-          downloadBtn.disabled = true;
-        } finally {
-          generateBtn.disabled = false;
-          generateBtn.textContent = 'Generate';
-        }
-      });
+          const payload = await response.json();
+          latestCases = normalizeCases(payload);
+          renderTable(latestCases);
+          downloadBtn.disabled = latestCases.length === 0;
 
-      downloadBtn.addEventListener('click', () => {
-        if (!latestResult) return;
-        const csv = toCsv(latestResult);
-        downloadCsv('generated_result.csv', csv);
-      });
+          if (!latestCases.length) {
+            setError('No structured test cases were returned. Please refine your user story and try again.');
+          }
+        } catch (error) {
+          setError(error.message || 'An unexpected error occurred while generating test cases.');
+          clearOutput();
+        } finally {
+          setLoadingState(false);
+        }
+      }
+
+      async function downloadCsv() {
+        const prompt = storyInput.value.trim();
+        if (!prompt) {
+          setError('Please enter a user story before downloading CSV.');
+          return;
+        }
+
+        downloadBtn.disabled = true;
+        setError('');
+
+        try {
+          const response = await fetch(`${API_BASE}/export`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, test_cases: latestCases }),
+          });
+
+          if (!response.ok) {
+            const message = await response.text();
+            throw new Error(`Export failed (${response.status}): ${message || 'Unknown error'}`);
+          }
+
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          const disposition = response.headers.get('content-disposition') || '';
+          const matchedName = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+          const fileName = decodeURIComponent(matchedName?.[1] || matchedName?.[2] || 'test-cases.csv');
+
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          setError(error.message || 'An unexpected error occurred while downloading CSV.');
+        } finally {
+          downloadBtn.disabled = latestCases.length === 0;
+        }
+      }
+
+      storyInput.addEventListener('input', updateCharCount);
+      generateBtn.addEventListener('click', generateTestCases);
+      downloadBtn.addEventListener('click', downloadCsv);
+
+      updateCharCount();
     </script>
   </body>
 </html>
