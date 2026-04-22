@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from typing import Any
 
@@ -7,104 +6,44 @@ from openai import OpenAI
 
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-logger = logging.getLogger(__name__)
-
-_REQUIRED_KEYS = ["id", "title", "steps", "expected", "priority"]
-_VALID_PRIORITIES = {"high", "medium", "low"}
 
 
 def extract_json(text: str) -> list[dict[str, Any]]:
-    text = (text or "").strip()
-
-    # remove markdown fences
-    text = text.replace("```json", "").replace("```", "")
-
-    start = text.find("[")
-    end = text.rfind("]")
-
-    if start == -1 or end == -1 or end < start:
-        raise ValueError("No JSON found")
-
-    json_str = text[start : end + 1]
     try:
-        data = json.loads(json_str)
-    except json.JSONDecodeError as exc:
-        raise ValueError("Invalid JSON found in model response") from exc
+        text = (text or "").replace("```json", "").replace("```", "").strip()
 
-    if not isinstance(data, list):
-        raise ValueError("JSON root must be a list")
+        start = text.find("[")
+        end = text.rfind("]")
 
-    seen_signatures: set[tuple[str, tuple[str, ...], str]] = set()
-    normalized: list[dict[str, Any]] = []
+        if start == -1 or end == -1 or end < start:
+            return []
 
-    # validate structure and quality
-    for idx, item in enumerate(data, start=1):
-        if not isinstance(item, dict):
-            raise ValueError(f"Invalid test case at index {idx}: expected object")
+        json_str = text[start : end + 1]
+        parsed = json.loads(json_str)
 
-        for key in _REQUIRED_KEYS:
-            if key not in item:
-                raise ValueError(f"Missing key: {key}")
+        if isinstance(parsed, list):
+            return parsed
 
-        title = str(item["title"]).strip()
-        expected = str(item["expected"]).strip()
-        if not title or len(title.split()) < 3:
-            raise ValueError(f"Invalid title for test case {idx}: must be meaningful")
-        if not expected or len(expected.split()) < 4:
-            raise ValueError(f"Invalid expected result for test case {idx}: too vague")
+        return []
 
-        steps = item["steps"]
-        if not isinstance(steps, list) or not steps:
-            raise ValueError(f"Invalid steps for test case {idx}: must be a non-empty list")
-
-        cleaned_steps: list[str] = []
-        for step in steps:
-            step_text = str(step).strip()
-            if len(step_text.split()) < 3:
-                raise ValueError(f"Invalid step for test case {idx}: steps must be actionable")
-            cleaned_steps.append(step_text)
-
-        priority = str(item["priority"]).strip().capitalize()
-        if priority.lower() not in _VALID_PRIORITIES:
-            raise ValueError(f"Invalid priority for test case {idx}: {priority}")
-
-        signature = (
-            title.lower(),
-            tuple(step.lower() for step in cleaned_steps),
-            expected.lower(),
-        )
-        if signature in seen_signatures:
-            continue
-        seen_signatures.add(signature)
-
-        normalized.append(
-            {
-                "id": str(item["id"]).strip() or f"TC_{idx:03d}",
-                "title": title,
-                "steps": cleaned_steps,
-                "expected": expected,
-                "priority": priority,
-            }
-        )
-
-    if not normalized:
-        raise ValueError("No valid test cases returned")
-
-    return normalized
+    except Exception as e:
+        print("JSON PARSE ERROR:", str(e))
+        return []
 
 
 def generate_test_cases(user_story: str) -> list[dict[str, Any]]:
-    if not user_story or not user_story.strip():
-        raise ValueError("prompt must be a non-empty string.")
-
-    if not os.getenv("OPENAI_API_KEY"):
-        raise ValueError("Missing OpenAI API key. Set OPENAI_API_KEY in environment.")
-
     try:
-        prompt = f"""
-Generate high-quality test cases for the user story below.
+        if not user_story or not str(user_story).strip():
+            return []
 
-Return ONLY JSON array:
+        if not os.getenv("OPENAI_API_KEY"):
+            print("OPENAI ERROR: Missing OPENAI_API_KEY")
+            return []
+
+        prompt = f"""
+Return ONLY JSON array.
+
+Format:
 [
   {{
     "id": "TC_001",
@@ -115,46 +54,27 @@ Return ONLY JSON array:
   }}
 ]
 
-Rules:
-- No markdown
-- No explanation
-- No text outside JSON
-- At least 3 functional test cases
-- At least 2 negative test cases
-- At least 2 edge cases
-- Steps must be actionable and detailed
-- Expected results must be precise and measurable
-- Titles must be specific and meaningful
-- Do not duplicate scenarios
-
 User Story:
 {user_story}
 """
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a QA expert. Return ONLY valid JSON."},
-                {"role": "user", "content": prompt},
-            ],
+            messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
         )
 
-        content = response.choices[0].message.content or "[]"
-        logger.info("OpenAI raw response content: %s", content)
-        print("RAW AI OUTPUT:", content)
-        return extract_json(content)
+        content = response.choices[0].message.content if response.choices else "[]"
 
-    except ValueError as exc:
-        error_message = f"Invalid model response: {str(exc)}"
-        logger.error("OPENAI PARSING ERROR: %s", error_message, exc_info=True)
-        print("OPENAI PARSING ERROR:", error_message)
-        raise RuntimeError(error_message) from exc
-    except Exception as exc:
-        error_message = f"OpenAI request failed: {str(exc)}"
-        logger.error("OPENAI ERROR: %s", error_message, exc_info=True)
-        print("OPENAI ERROR:", error_message)
-        raise RuntimeError(error_message) from exc
+        print("RAW AI OUTPUT:", content)
+
+        parsed = extract_json(content)
+
+        return parsed if isinstance(parsed, list) else []
+
+    except Exception as e:
+        print("OPENAI ERROR:", str(e))
+        return []
 
 
 class AIService:
