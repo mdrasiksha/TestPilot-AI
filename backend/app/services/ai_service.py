@@ -102,27 +102,23 @@ def generate_test_cases(user_story: str) -> list[dict[str, Any]]:
 
     try:
         prompt = f"""
-You are a senior QA engineer.
+Generate high-quality test cases for the user story below.
 
-Generate high-quality test cases.
-
-STRICT RULES:
-- Return ONLY JSON
-- No explanation
-- No text outside JSON
-
-Format:
+Return ONLY JSON array:
 [
   {{
     "id": "TC_001",
-    "title": "short meaningful title",
-    "steps": ["step 1", "step 2"],
-    "expected": "clear expected result",
+    "title": "",
+    "steps": ["step 1"],
+    "expected": "",
     "priority": "High|Medium|Low"
   }}
 ]
 
-Requirements:
+Rules:
+- No markdown
+- No explanation
+- No text outside JSON
 - At least 3 functional test cases
 - At least 2 negative test cases
 - At least 2 edge cases
@@ -138,38 +134,15 @@ User Story:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an expert QA engineer."},
+                {"role": "system", "content": "You are a QA expert. Return ONLY valid JSON."},
                 {"role": "user", "content": prompt},
             ],
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "test_cases",
-                    "strict": True,
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": False,
-                            "properties": {
-                                "id": {"type": "string"},
-                                "title": {"type": "string"},
-                                "steps": {"type": "array", "items": {"type": "string"}},
-                                "expected": {"type": "string"},
-                                "priority": {"type": "string", "enum": ["High", "Medium", "Low"]},
-                            },
-                            "required": _REQUIRED_KEYS,
-                        },
-                        "minItems": 7,
-                    },
-                },
-            },
             temperature=0.3,
         )
 
         content = response.choices[0].message.content or "[]"
         logger.info("OpenAI raw response content: %s", content)
-        print("OPENAI RESPONSE CONTENT:", content)
+        print("RAW AI OUTPUT:", content)
         return extract_json(content)
 
     except ValueError as exc:
