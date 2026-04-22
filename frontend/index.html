@@ -236,6 +236,35 @@
         border-radius: 12px;
       }
 
+      .history-list {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        max-height: 220px;
+        overflow-y: auto;
+        background: #fff;
+      }
+
+      .history-item {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+
+      .history-item:last-child {
+        border-bottom: none;
+      }
+
+      .history-item:hover {
+        background: #f3f4f6;
+      }
+
+      .history-empty {
+        padding: 12px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
       @media (max-width: 768px) {
         .card {
           padding: 18px;
@@ -276,6 +305,9 @@
           <div class="actions">
             <button id="generateBtn" class="btn btn-primary">Generate Test Cases</button>
             <button id="downloadBtn" class="btn btn-secondary" disabled>Download CSV</button>
+            <button id="downloadExcelBtn" class="btn btn-secondary" disabled>Download Excel</button>
+            <button id="copyBtn" class="btn btn-secondary" disabled>Copy Test Cases</button>
+            <button id="saveHistoryBtn" class="btn btn-secondary" disabled>Save History</button>
           </div>
           <div id="loading" class="loading" aria-live="polite">
             <span class="spinner" aria-hidden="true"></span>
@@ -288,6 +320,11 @@
           <h2 style="margin: 0 0 10px; font-size: 1.1rem">Generated Test Cases</h2>
           <div id="output" class="empty-state">No test cases generated yet.</div>
         </div>
+
+        <div class="section">
+          <h2 style="margin: 0 0 10px; font-size: 1.1rem">History</h2>
+          <div id="history" class="history-list"></div>
+        </div>
       </section>
     </main>
 
@@ -298,9 +335,13 @@
       const charCount = document.getElementById('charCount');
       const generateBtn = document.getElementById('generateBtn');
       const downloadBtn = document.getElementById('downloadBtn');
+      const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+      const copyBtn = document.getElementById('copyBtn');
+      const saveHistoryBtn = document.getElementById('saveHistoryBtn');
       const output = document.getElementById('output');
       const loading = document.getElementById('loading');
       const errorBox = document.getElementById('error');
+      const historyContainer = document.getElementById('history');
 
       let latestData = [];
 
@@ -325,6 +366,13 @@
         } else {
           generateBtn.textContent = 'Generate Test Cases';
         }
+      }
+
+      function setCaseActionButtonsDisabled(disabled) {
+        downloadBtn.disabled = disabled;
+        downloadExcelBtn.disabled = disabled;
+        copyBtn.disabled = disabled;
+        saveHistoryBtn.disabled = disabled;
       }
 
       function setError(message = '') {
@@ -419,7 +467,7 @@
         }
 
         latestData = [];
-        downloadBtn.disabled = true;
+        setCaseActionButtonsDisabled(true);
         setError('');
         clearOutput();
         setLoadingState(true);
@@ -439,7 +487,11 @@
           const payload = await response.json();
           latestData = normalizeCases(payload);
           renderTable(latestData);
-          downloadBtn.disabled = latestData.length === 0;
+          setCaseActionButtonsDisabled(latestData.length === 0);
+
+          if (latestData.length) {
+            saveHistory(prompt, latestData);
+          }
 
           if (!latestData.length) {
             setError('No structured test cases were returned. Please refine your user story and try again.');
@@ -489,15 +541,125 @@
         } catch (error) {
           setError(error.message || 'An unexpected error occurred while downloading CSV.');
         } finally {
-          downloadBtn.disabled = latestData.length === 0;
+          setCaseActionButtonsDisabled(latestData.length === 0);
         }
+      }
+
+
+      function saveHistory(prompt, data) {
+        const history = JSON.parse(localStorage.getItem('history') || '[]');
+
+        history.unshift({
+          prompt,
+          data,
+          time: new Date().toLocaleString(),
+        });
+
+        localStorage.setItem('history', JSON.stringify(history));
+        loadHistory();
+      }
+
+      function loadHistory() {
+        const history = JSON.parse(localStorage.getItem('history') || '[]');
+
+        historyContainer.innerHTML = '';
+
+        if (!history.length) {
+          historyContainer.innerHTML = '<div class="history-empty">No saved history yet.</div>';
+          return;
+        }
+
+        history.forEach((item) => {
+          const div = document.createElement('div');
+          div.className = 'history-item';
+          div.innerText = `${item.time} - ${item.prompt}`;
+
+          div.onclick = () => {
+            latestData = Array.isArray(item.data) ? item.data : [];
+            renderTable(latestData);
+            setCaseActionButtonsDisabled(latestData.length === 0);
+            setError('');
+          };
+
+          historyContainer.appendChild(div);
+        });
+      }
+
+      function copyTestCases() {
+        if (!Array.isArray(latestData) || latestData.length === 0) {
+          setError('No test cases available to copy.');
+          return;
+        }
+
+        const text = JSON.stringify(latestData, null, 2);
+        navigator.clipboard.writeText(text);
+        alert('Copied to clipboard');
+      }
+
+      async function downloadExcel() {
+        if (!Array.isArray(latestData) || latestData.length === 0) {
+          setError('No test cases available to export.');
+          return;
+        }
+
+        downloadExcelBtn.disabled = true;
+        setError('');
+
+        try {
+          const res = await fetch(`${API_BASE}/export-excel`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(latestData),
+          });
+
+          if (!res.ok) {
+            const message = await res.text();
+            throw new Error(`Export failed (${res.status}): ${message || 'Unknown error'}`);
+          }
+
+          const blob = await res.blob();
+          const url = window.URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'testcases.xlsx';
+          a.click();
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          setError(error.message || 'An unexpected error occurred while downloading Excel.');
+        } finally {
+          downloadExcelBtn.disabled = latestData.length === 0;
+        }
+      }
+
+      function saveLatestHistory() {
+        const prompt = storyInput.value.trim();
+        if (!prompt) {
+          setError('Please enter a user story before saving history.');
+          return;
+        }
+
+        if (!Array.isArray(latestData) || latestData.length === 0) {
+          setError('No test cases available to save.');
+          return;
+        }
+
+        saveHistory(prompt, latestData);
+        setError('');
       }
 
       storyInput.addEventListener('input', updateCharCount);
       generateBtn.addEventListener('click', generateTestCases);
       downloadBtn.addEventListener('click', downloadCsv);
+      downloadExcelBtn.addEventListener('click', downloadExcel);
+      copyBtn.addEventListener('click', copyTestCases);
+      saveHistoryBtn.addEventListener('click', saveLatestHistory);
 
+      setCaseActionButtonsDisabled(true);
       updateCharCount();
+      loadHistory();
     </script>
   </body>
 </html>

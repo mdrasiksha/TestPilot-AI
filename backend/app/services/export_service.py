@@ -6,3 +6,10 @@ def generate_csv(data):
     file_path = "testcases.csv"
     df.to_csv(file_path, index=False)
     return file_path
+
+
+def generate_excel(data):
+    file_path = "testcases.xlsx"
+    df = pd.DataFrame(data)
+    df.to_excel(file_path, index=False)
+    return file_path
