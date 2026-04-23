@@ -7,37 +7,18 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-REQUIRED_TYPE_MINIMUMS = {
-    "Functional": 4,
-    "Negative": 3,
-    "Edge": 2,
-    "Security": 1,
-}
-
 VALID_PRIORITIES = {"High", "Medium", "Low"}
 REQUIRED_FIELDS = {
     "id",
-    "title",
-    "type",
-    "priority",
-    "preconditions",
     "steps",
-    "expected",
+    "expected_result",
+    "priority",
 }
 
 
 def extract_json(text: str) -> list[dict[str, Any]]:
     try:
-        text = (text or "").replace("```json", "").replace("```", "").strip()
-
-        start = text.find("[")
-        end = text.rfind("]")
-
-        if start == -1 or end == -1 or end < start:
-            return []
-
-        json_str = text[start : end + 1]
-        parsed = json.loads(json_str)
+        parsed = json.loads((text or "").strip())
 
         if isinstance(parsed, list):
             return parsed
@@ -63,28 +44,14 @@ def _validate_case_structure(test_case: dict[str, Any]) -> bool:
     if not _is_non_empty_string(test_case.get("id")):
         return False
 
-    if not _is_non_empty_string(test_case.get("title")):
-        return False
-
-    if test_case.get("type") not in REQUIRED_TYPE_MINIMUMS:
-        return False
-
     if test_case.get("priority") not in VALID_PRIORITIES:
         return False
 
-    preconditions = test_case.get("preconditions")
-    if not isinstance(preconditions, list) or not preconditions:
-        return False
-    if not all(_is_non_empty_string(item) for item in preconditions):
-        return False
-
     steps = test_case.get("steps")
-    if not isinstance(steps, list) or not steps:
-        return False
-    if not all(_is_non_empty_string(step) for step in steps):
+    if not _is_non_empty_string(steps):
         return False
 
-    if not _is_non_empty_string(test_case.get("expected")):
+    if not _is_non_empty_string(test_case.get("expected_result")):
         return False
 
     return True
@@ -92,15 +59,13 @@ def _validate_case_structure(test_case: dict[str, Any]) -> bool:
 
 def _deduplicate_cases(test_cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
     unique_cases: list[dict[str, Any]] = []
-    seen_signatures: set[tuple[str, str, str, str]] = set()
+    seen_signatures: set[tuple[str, str, str]] = set()
 
     for case in test_cases:
-        title = case.get("title", "").strip().lower()
-        case_type = case.get("type", "").strip().lower()
-        expected = case.get("expected", "").strip().lower()
-        steps = " | ".join(str(step).strip().lower() for step in case.get("steps", []))
-
-        signature = (title, case_type, steps, expected)
+        steps = str(case.get("steps", "")).strip().lower()
+        expected = str(case.get("expected_result", "")).strip().lower()
+        priority = str(case.get("priority", "")).strip().lower()
+        signature = (steps, expected, priority)
 
         if signature in seen_signatures:
             continue
@@ -111,25 +76,11 @@ def _deduplicate_cases(test_cases: list[dict[str, Any]]) -> list[dict[str, Any]]
     return unique_cases
 
 
-def _meets_minimum_coverage(test_cases: list[dict[str, Any]]) -> bool:
-    counts = {key: 0 for key in REQUIRED_TYPE_MINIMUMS}
-
-    for case in test_cases:
-        case_type = case.get("type")
-        if case_type in counts:
-            counts[case_type] += 1
-
-    return all(counts[case_type] >= minimum for case_type, minimum in REQUIRED_TYPE_MINIMUMS.items())
-
-
 def _normalize_and_validate_cases(test_cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
     valid_cases = [case for case in test_cases if _validate_case_structure(case)]
     deduplicated_cases = _deduplicate_cases(valid_cases)
 
-    if len(deduplicated_cases) < sum(REQUIRED_TYPE_MINIMUMS.values()):
-        return []
-
-    if not _meets_minimum_coverage(deduplicated_cases):
+    if len(deduplicated_cases) < 5:
         return []
 
     return deduplicated_cases
@@ -145,55 +96,28 @@ def generate_test_cases(user_story: str) -> list[dict[str, Any]]:
             return []
 
         prompt = f"""
-You are a senior QA architect.
+You are a QA expert.
 
-Generate enterprise-level test cases.
+Convert the user story into test cases.
 
-STRICT RULES:
-- Return ONLY JSON
-- No explanation
-- No extra text
+Return ONLY valid JSON in this format:
 
-Output format:
 [
   {{
-    "id": "TC_001",
-    "title": "Clear and meaningful test case title",
-    "type": "Functional | Negative | Edge | Security",
-    "priority": "High | Medium | Low",
-    "preconditions": ["state before test"],
-    "steps": ["step 1", "step 2"],
-    "expected": "clear expected result"
+    "id": "TC001",
+    "steps": "string",
+    "expected_result": "string",
+    "priority": "High | Medium | Low"
   }}
 ]
 
-Coverage minimums:
-- Functional: 4
-- Negative: 3
-- Edge: 2
-- Security: 1
-
-Include:
-- functional cases
-- negative cases
-- edge cases
-- security scenarios
-- validation cases
-- error handling
-- boundary conditions
-- invalid inputs
-- system failures
-
-Ensure:
-- realistic scenarios
-- production-level coverage
-- no duplicates
-- executable steps
-- precise expected results
-
-Domain awareness:
-- Authentication: invalid credentials, account lock, password rules, session handling
-- Payments: failure scenarios, timeout, duplicate transactions
+Rules:
+- Generate at least 5 test cases
+- Include positive, negative, and edge cases
+- No explanation text
+- No markdown
+- No extra characters
+- Output must be pure JSON only
 
 User Story:
 {user_story}
