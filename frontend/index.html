@@ -437,6 +437,8 @@
               <button id="downloadExcelBtn" class="btn">Download Excel</button>
               <button id="copyBtn" class="btn">Copy</button>
               <button id="saveBtn" class="btn">Save</button>
+              <button id="importJiraBtn" class="btn">Import from Jira</button>
+              <button id="pushJiraBtn" class="btn">Push to Jira</button>
             </div>
             <div id="loading" class="loading" aria-live="polite">
               <span class="spinner" aria-hidden="true"></span>
@@ -470,6 +472,8 @@
       const downloadExcelBtn = document.getElementById('downloadExcelBtn');
       const copyBtn = document.getElementById('copyBtn');
       const saveBtn = document.getElementById('saveBtn');
+      const importJiraBtn = document.getElementById('importJiraBtn');
+      const pushJiraBtn = document.getElementById('pushJiraBtn');
       const loading = document.getElementById('loading');
       const output = document.getElementById('output');
       const errorBox = document.getElementById('error');
@@ -586,6 +590,7 @@
         downloadExcelBtn.disabled = disabled;
         copyBtn.disabled = disabled;
         saveBtn.disabled = disabled;
+        pushJiraBtn.disabled = disabled;
       }
 
       function setLoadingState(isLoading) {
@@ -749,6 +754,72 @@
         }
       }
 
+
+      async function importFromJira() {
+        const key = prompt('Enter Jira Issue Key (e.g. PROJ-123)');
+        if (!key) return;
+
+        setError('');
+
+        try {
+          const response = await fetch(`${API_BASE}/jira/${encodeURIComponent(key.trim())}`);
+          if (!response.ok) {
+            const message = await response.text();
+            throw new Error(`Jira import failed (${response.status}): ${message || 'Unknown error'}`);
+          }
+
+          const data = await response.json();
+          storyInput.value = data.user_story || '';
+          updateCharCount();
+        } catch (error) {
+          const message = error.message || 'Failed to import Jira issue.';
+          setError(message);
+          alert(message);
+        }
+      }
+
+      async function pushToJira() {
+        const project = prompt('Enter Project Key (e.g. PROJ)');
+        if (!project) return;
+
+        if (!latestData.length) {
+          const message = 'No generated test cases to push.';
+          setError(message);
+          alert(message);
+          return;
+        }
+
+        setError('');
+        pushJiraBtn.disabled = true;
+
+        try {
+          const response = await fetch(`${API_BASE}/jira/push`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              project_key: project.trim(),
+              test_cases: latestData,
+            }),
+          });
+
+          if (!response.ok) {
+            const message = await response.text();
+            throw new Error(`Jira push failed (${response.status}): ${message || 'Unknown error'}`);
+          }
+
+          const data = await response.json();
+          alert(`Created ${data.created} Jira tickets`);
+        } catch (error) {
+          const message = error.message || 'Failed to push test cases to Jira.';
+          setError(message);
+          alert(message);
+        } finally {
+          pushJiraBtn.disabled = latestData.length === 0;
+        }
+      }
+
       function saveCurrentToHistory() {
         const prompt = storyInput.value.trim();
         if (!prompt) {
@@ -770,6 +841,8 @@
       downloadExcelBtn.addEventListener('click', downloadExcel);
       copyBtn.addEventListener('click', copyResults);
       saveBtn.addEventListener('click', saveCurrentToHistory);
+      importJiraBtn.addEventListener('click', importFromJira);
+      pushJiraBtn.addEventListener('click', pushToJira);
 
       updateCharCount();
       renderHistory();

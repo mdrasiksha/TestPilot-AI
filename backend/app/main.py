@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.routes import api_router, export
+from app.routes import jira
 
 
 def create_app() -> FastAPI:
@@ -24,6 +25,7 @@ def create_app() -> FastAPI:
 
     application.include_router(api_router, prefix=settings.api_prefix)
     application.include_router(export.router, prefix="/api/v1")
+    application.include_router(jira.router, prefix="/api/v1")
     return application
 
 

@@ -1,64 +1,150 @@
-import base64
-import json
-from urllib import request
-from urllib.error import HTTPError, URLError
+import logging
+from typing import Any
+
+import requests
 
 from app.core.config import get_settings
 
+logger = logging.getLogger(__name__)
 
-class JiraService:
-    def __init__(self) -> None:
-        self.settings = get_settings()
 
-    def _auth_header(self) -> str:
-        token = f"{self.settings.jira_email}:{self.settings.jira_api_token}".encode("utf-8")
-        return f"Basic {base64.b64encode(token).decode('utf-8')}"
+def _get_jira_config() -> tuple[str, str, str]:
+    settings = get_settings()
+    base_url = settings.jira_base_url.strip().rstrip("/")
+    email = settings.jira_email.strip()
+    api_token = settings.jira_api_token.strip()
 
-    def create_issue(
-        self, project_key: str, summary: str, description: str, issue_type: str = "Task"
-    ) -> dict[str, str]:
-        if not self.settings.jira_base_url:
-            raise ValueError("Missing JIRA_BASE_URL in environment.")
-        if not self.settings.jira_email:
-            raise ValueError("Missing JIRA_EMAIL in environment.")
-        if not self.settings.jira_api_token:
-            raise ValueError("Missing JIRA_API_TOKEN in environment.")
+    if not base_url:
+        raise ValueError("Missing JIRA_BASE_URL environment variable.")
+    if not email:
+        raise ValueError("Missing JIRA_EMAIL environment variable.")
+    if not api_token:
+        raise ValueError("Missing JIRA_API_TOKEN environment variable.")
 
-        payload = {
-            "fields": {
-                "project": {"key": project_key},
-                "summary": summary,
-                "description": description,
-                "issuetype": {"name": issue_type},
-            }
+    return base_url, email, api_token
+
+
+def _adf_to_text(node: Any) -> str:
+    if node is None:
+        return ""
+
+    if isinstance(node, str):
+        return node
+
+    if isinstance(node, list):
+        fragments = [_adf_to_text(item) for item in node]
+        return "\n".join(fragment for fragment in fragments if fragment).strip()
+
+    if isinstance(node, dict):
+        node_type = node.get("type")
+        if node_type == "text":
+            return str(node.get("text", ""))
+
+        content = node.get("content", [])
+        pieces = [_adf_to_text(item) for item in content]
+        text = "".join(piece for piece in pieces if piece)
+
+        if node_type in {"paragraph", "heading", "blockquote", "listItem"}:
+            return f"{text}\n" if text else ""
+        if node_type in {"bulletList", "orderedList", "doc"}:
+            joined = "\n".join(piece.strip() for piece in pieces if piece.strip())
+            return f"{joined}\n" if joined else ""
+
+        return text
+
+    return str(node)
+
+
+def get_jira_issue(issue_key: str) -> str:
+    base_url, email, api_token = _get_jira_config()
+    url = f"{base_url}/rest/api/3/issue/{issue_key}"
+
+    logger.info("Fetching Jira issue: %s", issue_key)
+
+    try:
+        response = requests.get(url, auth=(email, api_token), timeout=30)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as exc:
+        logger.exception("Jira fetch failed for %s", issue_key)
+        raise RuntimeError(f"Jira issue fetch failed ({response.status_code}): {response.text}") from exc
+    except requests.exceptions.RequestException as exc:
+        logger.exception("Jira connection error for %s", issue_key)
+        raise RuntimeError("Could not connect to Jira API while fetching issue.") from exc
+
+    payload = response.json()
+    fields = payload.get("fields", {})
+    summary = fields.get("summary", "")
+    description = _adf_to_text(fields.get("description", "")).strip()
+
+    combined = f"Summary: {summary}\n\nDescription:\n{description}".strip()
+    logger.info("Fetched Jira issue %s successfully", issue_key)
+    return combined
+
+
+def create_jira_issue(project_key: str, summary: str, description: str) -> dict[str, Any]:
+    base_url, email, api_token = _get_jira_config()
+    url = f"{base_url}/rest/api/3/issue"
+
+    payload = {
+        "fields": {
+            "project": {"key": project_key},
+            "summary": summary,
+            "description": description,
+            "issuetype": {"name": "Task"},
         }
+    }
 
-        jira_url = self.settings.jira_base_url.rstrip("/")
-        req = request.Request(
-            url=f"{jira_url}/rest/api/3/issue",
-            data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Authorization": self._auth_header(),
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-            },
-            method="POST",
+    logger.info("Creating Jira issue in project %s", project_key)
+
+    try:
+        response = requests.post(url, json=payload, auth=(email, api_token), timeout=30)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as exc:
+        logger.exception("Jira create issue failed in project %s", project_key)
+        raise RuntimeError(f"Jira issue creation failed ({response.status_code}): {response.text}") from exc
+    except requests.exceptions.RequestException as exc:
+        logger.exception("Jira connection error during issue creation")
+        raise RuntimeError("Could not connect to Jira API while creating issue.") from exc
+
+    created = response.json()
+    logger.info("Created Jira issue: %s", created.get("key", "unknown"))
+    return created
+
+
+def push_test_cases(project_key: str, test_cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not test_cases:
+        raise ValueError("No test cases provided.")
+
+    created_issues: list[dict[str, Any]] = []
+
+    for index, test_case in enumerate(test_cases, start=1):
+        title = (
+            test_case.get("title")
+            or test_case.get("name")
+            or test_case.get("id")
+            or f"Generated Test Case {index}"
         )
 
-        try:
-            with request.urlopen(req, timeout=30) as response:
-                body = json.loads(response.read().decode("utf-8"))
-        except HTTPError as exc:
-            detail = exc.read().decode("utf-8")
-            raise RuntimeError(f"Jira API error ({exc.code}): {detail}") from exc
-        except URLError as exc:
-            raise RuntimeError("Could not connect to Jira API.") from exc
+        steps = test_case.get("steps") or test_case.get("procedure") or test_case.get("action_items") or []
+        if isinstance(steps, str):
+            formatted_steps = steps
+        elif isinstance(steps, list):
+            formatted_steps = "\n".join(f"{i + 1}. {step}" for i, step in enumerate(steps))
+        else:
+            formatted_steps = str(steps)
 
-        key = body.get("key")
-        if not key:
-            raise RuntimeError("Jira API did not return an issue key.")
+        expected = test_case.get("expected") or test_case.get("expected_result") or ""
+        priority = test_case.get("priority") or test_case.get("severity") or "Medium"
 
-        return {"key": key, "url": f"{jira_url}/browse/{key}"}
+        description = (
+            "Generated by TestPilot AI\n\n"
+            f"Steps:\n{formatted_steps or 'N/A'}\n\n"
+            f"Expected Result:\n{expected or 'N/A'}\n\n"
+            f"Priority: {priority}"
+        )
 
+        created_issue = create_jira_issue(project_key=project_key, summary=str(title), description=description)
+        created_issues.append(created_issue)
 
-jira_service = JiraService()
+    logger.info("Pushed %s test cases to Jira project %s", len(created_issues), project_key)
+    return created_issues
