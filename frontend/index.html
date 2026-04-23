@@ -240,6 +240,38 @@
         display: block;
       }
 
+      .status {
+        display: none;
+        margin-top: 12px;
+        border-radius: 12px;
+        border: 1px solid #bbf7d0;
+        background: #f0fdf4;
+        color: #166534;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+
+      .status.visible {
+        display: block;
+      }
+
+      .raw-output {
+        display: none;
+        margin-top: 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 12px;
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .raw-output.visible {
+        display: block;
+      }
+
       .table-shell {
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -445,11 +477,13 @@
               <span>Generating test cases...</span>
             </div>
             <div id="error" class="error" role="alert"></div>
+            <div id="status" class="status" aria-live="polite"></div>
           </div>
 
           <div class="section">
             <h3 class="section-title">Output</h3>
             <div id="output" class="empty">No test cases yet</div>
+            <pre id="rawOutput" class="raw-output"></pre>
           </div>
         </article>
 
@@ -477,6 +511,8 @@
       const loading = document.getElementById('loading');
       const output = document.getElementById('output');
       const errorBox = document.getElementById('error');
+      const statusBox = document.getElementById('status');
+      const rawOutput = document.getElementById('rawOutput');
       const historyContainer = document.getElementById('history');
 
       let latestData = [];
@@ -499,21 +535,35 @@
         errorBox.classList.toggle('visible', Boolean(message));
       }
 
-      function normalizeCases(payload) {
-        if (Array.isArray(payload)) return payload;
-        if (Array.isArray(payload?.test_cases)) return payload.test_cases;
-        if (Array.isArray(payload?.cases)) return payload.cases;
-        if (Array.isArray(payload?.data)) return payload.data;
-        if (typeof payload?.content === 'string') {
-          try {
-            const parsed = JSON.parse(payload.content);
-            if (Array.isArray(parsed)) return parsed;
-            if (Array.isArray(parsed?.test_cases)) return parsed.test_cases;
-          } catch (_error) {
-            return [];
-          }
+      function setStatus(message = '') {
+        statusBox.textContent = message;
+        statusBox.classList.toggle('visible', Boolean(message));
+      }
+
+      function setRawOutput(message = '') {
+        rawOutput.textContent = message;
+        rawOutput.classList.toggle('visible', Boolean(message));
+      }
+
+      function parseAIResponse(responseText) {
+        try {
+          return JSON.parse(responseText);
+        } catch (_error) {
+          setError('Invalid AI response format');
+          setRawOutput(responseText);
+          return null;
         }
-        return [];
+      }
+
+      function isValidStructuredCase(testCase) {
+        if (!testCase || typeof testCase !== 'object') return false;
+        const required = ['id', 'steps', 'expected_result', 'priority'];
+        return required.every((key) => Object.hasOwn(testCase, key));
+      }
+
+      function validateStructuredCases(parsedData) {
+        if (!Array.isArray(parsedData)) return false;
+        return parsedData.every(isValidStructuredCase);
       }
 
       function normalizeSteps(steps) {
@@ -547,7 +597,7 @@
           .map((testCase, index) => {
             const id = testCase.id || testCase.test_id || `TC-${index + 1}`;
             const title = testCase.title || testCase.name || 'Untitled test case';
-            const expected = testCase.expected || testCase.expected_result || testCase.result || '-';
+            const expected = testCase.expected_result || testCase.expected || testCase.result || '-';
             const priority = testCase.priority || testCase.severity || 'Medium';
             const pClass = priorityClass(priority);
             const steps = normalizeSteps(testCase.steps || testCase.procedure || testCase.action_items);
@@ -656,6 +706,8 @@
             renderOutput(latestData);
             setActionButtonsDisabled(latestData.length === 0);
             setError('');
+            setStatus('');
+            setRawOutput('');
           });
 
           historyContainer.appendChild(button);
@@ -670,6 +722,8 @@
         }
 
         setError('');
+        setStatus('');
+        setRawOutput('');
         latestData = [];
         renderEmptyState();
         setLoadingState(true);
@@ -686,15 +740,25 @@
             throw new Error(`Generate failed (${response.status}): ${message || 'Unknown error'}`);
           }
 
-          const payload = await response.json();
-          latestData = normalizeCases(payload);
-          renderOutput(latestData);
-
-          if (!latestData.length) {
-            setError('No structured test cases were returned. Please refine your story and try again.');
-          } else {
-            saveHistoryEntry(prompt, latestData);
+          const responseText = await response.text();
+          const parsed = parseAIResponse(responseText);
+          if (!parsed) {
+            renderEmptyState();
+            return;
           }
+
+          const candidateCases = Array.isArray(parsed?.data) ? parsed.data : parsed;
+          if (!validateStructuredCases(candidateCases)) {
+            latestData = [];
+            renderEmptyState();
+            setError('No structured test cases returned. Please refine your input.');
+            return;
+          }
+
+          latestData = candidateCases;
+          renderOutput(latestData);
+          setStatus('Test cases generated successfully.');
+          saveHistoryEntry(prompt, latestData);
         } catch (error) {
           renderEmptyState();
           setError(error.message || 'An unexpected error occurred while generating test cases.');
