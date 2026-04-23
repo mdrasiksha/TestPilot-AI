@@ -495,6 +495,7 @@
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
       const API_BASE = 'https://testpilot-ai-ziwc.onrender.com/api/v1';
       const HISTORY_KEY = 'testpilot-history';
@@ -545,13 +546,25 @@
         rawOutput.classList.toggle('visible', Boolean(message));
       }
 
-      function parseAIResponse(responseText) {
+      function fixAndParseJSON(responseText) {
         try {
           return JSON.parse(responseText);
-        } catch (_error) {
-          setError('Invalid AI response format');
-          setRawOutput(responseText);
-          return null;
+        } catch (_firstError) {
+          try {
+            let cleaned = responseText;
+            const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+            if (arrayMatch) cleaned = arrayMatch[0];
+
+            cleaned = cleaned
+              .replace(/,\s*}/g, '}')
+              .replace(/,\s*]/g, ']')
+              .replace(/'/g, '"')
+              .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)/g, '$1"$2"$3');
+
+            return JSON.parse(cleaned);
+          } catch (_secondError) {
+            return [];
+          }
         }
       }
 
@@ -741,9 +754,12 @@
           }
 
           const responseText = await response.text();
-          const parsed = parseAIResponse(responseText);
-          if (!parsed) {
+          const parsed = fixAndParseJSON(responseText);
+          if (Array.isArray(parsed) && parsed.length === 0) {
+            latestData = [];
             renderEmptyState();
+            setError('AI response could not be structured. Showing raw output.');
+            setRawOutput(responseText);
             return;
           }
 
@@ -767,40 +783,46 @@
         }
       }
 
-      async function downloadExcel() {
+      function toCellText(value) {
+        if (Array.isArray(value)) {
+          return value.join('\n');
+        }
+        return value == null ? '' : String(value);
+      }
+
+      function downloadExcel(testCases) {
+        if (!testCases || !testCases.length) return false;
+        const worksheetData = testCases.map((tc, index) => ({
+          'Test Case ID': tc.id || tc.test_id || `TC-${index + 1}`,
+          Steps: toCellText(normalizeSteps(tc.steps || tc.procedure || tc.action_items)),
+          'Expected Result': tc.expected_result || tc.expected || tc.result || '',
+          Priority: tc.priority || tc.severity || 'Medium',
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        const columns = Object.keys(worksheetData[0]).map((key) => ({
+          wch: Math.max(key.length + 2, ...worksheetData.map((row) => String(row[key]).length), 14),
+        }));
+        worksheet['!cols'] = columns;
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'TestCases');
+        XLSX.writeFile(workbook, 'test_cases.xlsx');
+        return true;
+      }
+
+      async function handleDownloadExcel() {
         if (!latestData.length) {
           setError('No test cases available to export.');
           return;
         }
 
         setError('');
-        downloadExcelBtn.disabled = true;
-
-        try {
-          const response = await fetch(`${API_BASE}/export-excel`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(latestData),
-          });
-
-          if (!response.ok) {
-            const message = await response.text();
-            throw new Error(`Export failed (${response.status}): ${message || 'Unknown error'}`);
-          }
-
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          anchor.href = url;
-          anchor.download = 'test-cases.xlsx';
-          document.body.appendChild(anchor);
-          anchor.click();
-          anchor.remove();
-          URL.revokeObjectURL(url);
-        } catch (error) {
-          setError(error.message || 'An unexpected error occurred while downloading Excel.');
-        } finally {
-          downloadExcelBtn.disabled = latestData.length === 0;
+        const downloaded = downloadExcel(latestData);
+        if (downloaded) {
+          setStatus('Excel downloaded successfully');
+        } else {
+          setError('No test cases available to export.');
         }
       }
 
@@ -902,7 +924,7 @@
 
       storyInput.addEventListener('input', updateCharCount);
       generateBtn.addEventListener('click', generateTestCases);
-      downloadExcelBtn.addEventListener('click', downloadExcel);
+      downloadExcelBtn.addEventListener('click', handleDownloadExcel);
       copyBtn.addEventListener('click', copyResults);
       saveBtn.addEventListener('click', saveCurrentToHistory);
       importJiraBtn.addEventListener('click', importFromJira);
