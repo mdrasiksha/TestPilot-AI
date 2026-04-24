@@ -6,7 +6,7 @@ from app.services.ai_service import ai_service
 
 router = APIRouter(tags=["generate"])
 
-DAILY_LIMIT = 10
+DAILY_LIMIT = 5
 usage_store: dict[str, dict[str, int | str]] = {}
 
 
@@ -30,11 +30,10 @@ def generate(data: dict):
             user_data["date"] = today
             user_data["count"] = 0
 
-        remaining_before = DAILY_LIMIT - int(user_data["count"])
-        if remaining_before <= 0:
+        if int(user_data["count"]) >= DAILY_LIMIT:
             return {
                 "error": "LIMIT_REACHED",
-                "message": "Daily limit reached",
+                "message": "Daily limit reached (5 per day)",
                 "data": [],
                 "remaining": 0,
             }
@@ -44,7 +43,7 @@ def generate(data: dict):
 
         user_data["count"] = int(user_data["count"]) + 1
         result = ai_service.generate_test_cases(user_story)
-        remaining = max(0, DAILY_LIMIT - int(user_data["count"]))
+        remaining = DAILY_LIMIT - int(user_data["count"])
 
         return {"data": result, "remaining": remaining}
 
