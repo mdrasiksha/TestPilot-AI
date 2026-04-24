@@ -261,6 +261,53 @@
         font-size: 0.88rem;
       }
 
+      .usage-cta-row {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .upgrade-cta-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .upgrade-btn-primary {
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        font-weight: 700;
+        padding: 12px 20px;
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
+      }
+
+      .upgrade-btn-primary:hover:not(:disabled) {
+        background: #15803d;
+        border-color: #15803d;
+      }
+
+      .upgrade-subtext {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 0.82rem;
+      }
+
+      .upgrade-badge {
+        display: inline-flex;
+        align-items: center;
+        background: #dcfce7;
+        color: #15803d;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
       .upgrade-banner {
         display: none;
         margin-top: 10px;
@@ -496,6 +543,15 @@
         .btn {
           width: 100%;
         }
+
+        .usage-cta-row {
+          align-items: stretch;
+        }
+
+        .upgrade-cta-wrap {
+          width: 100%;
+          justify-content: space-between;
+        }
       }
     </style>
   </head>
@@ -528,13 +584,6 @@
           <div class="section">
             <div class="actions">
               <button id="generateBtn" class="btn btn-primary">Generate</button>
-              <button
-                id="upgradeBtn"
-                onClick="handleUpgrade()"
-                class="bg-blue-600 text-white px-4 py-2 rounded-xl"
-              >
-                Upgrade to Pro 🚀
-              </button>
               <button id="downloadExcelBtn" class="btn">Download Excel</button>
               <button id="copyBtn" class="btn">Copy</button>
               <button id="saveBtn" class="btn">Save</button>
@@ -545,7 +594,20 @@
               <span class="spinner" aria-hidden="true"></span>
               <span>Generating test cases...</span>
             </div>
-            <div id="usageDisplay" class="usage">Remaining free usage: 5/5</div>
+            <div class="usage-cta-row">
+              <div id="usageDisplay" class="usage">Remaining free usage: 5/5</div>
+              <div class="upgrade-cta-wrap">
+                <button
+                  id="upgradeBtn"
+                  onClick="handleUpgrade()"
+                  class="btn upgrade-btn-primary"
+                >
+                  🚀 Upgrade to Pro
+                </button>
+                <span class="upgrade-badge">Most Popular</span>
+              </div>
+            </div>
+            <p class="upgrade-subtext">Unlock unlimited test cases</p>
             <div id="upgradeBanner" class="upgrade-banner">Upgrade to Pro for unlimited test cases</div>
             <div id="error" class="error" role="alert"></div>
             <div id="status" class="status" aria-live="polite"></div>
@@ -571,7 +633,10 @@
         <p class="mb-3">You’ve reached your free limit (5/day)</p>
         <p class="text-sm mb-4">Unlock unlimited test cases + Excel download</p>
         <div class="modal-actions">
-          <button id="whatsappUpgradeBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg w-full mb-2 btn btn-primary">Upgrade Now</button>
+          <button id="whatsappUpgradeBtn" class="btn upgrade-btn-primary" style="width: 100%; border-radius: 0.75rem;">Upgrade Now 🚀</button>
+          <p class="text-xs text-gray-400 mt-2 text-center" style="margin: 8px 0 4px; font-size: 0.75rem; color: #9ca3af; text-align: center;">
+            Used by QA engineers • Saves hours every week
+          </p>
           <button id="closeUpgradeBtn" class="text-gray-500 btn">Maybe Later</button>
         </div>
       </div>
