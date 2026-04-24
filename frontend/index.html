@@ -273,7 +273,6 @@
       .upgrade-cta-wrap {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
       }
 
       .upgrade-btn-primary {
@@ -297,15 +296,10 @@
         font-size: 0.82rem;
       }
 
-      .upgrade-badge {
-        display: inline-flex;
-        align-items: center;
-        background: #dcfce7;
-        color: #15803d;
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 0.72rem;
-        font-weight: 700;
+      .upgrade-btn-modal {
+        width: 100%;
+        border-radius: 0.75rem;
+        box-shadow: none;
       }
 
       .upgrade-banner {
@@ -604,7 +598,6 @@
                 >
                   🚀 Upgrade to Pro
                 </button>
-                <span class="upgrade-badge">Most Popular</span>
               </div>
             </div>
             <p class="upgrade-subtext">Unlock unlimited test cases</p>
@@ -633,7 +626,7 @@
         <p class="mb-3">You’ve reached your free limit (5/day)</p>
         <p class="text-sm mb-4">Unlock unlimited test cases + Excel download</p>
         <div class="modal-actions">
-          <button id="whatsappUpgradeBtn" class="btn upgrade-btn-primary" style="width: 100%; border-radius: 0.75rem;">Upgrade Now 🚀</button>
+          <button id="whatsappUpgradeBtn" class="btn upgrade-btn-primary upgrade-btn-modal">Upgrade Now 🚀</button>
           <p class="text-xs text-gray-400 mt-2 text-center" style="margin: 8px 0 4px; font-size: 0.75rem; color: #9ca3af; text-align: center;">
             Used by QA engineers • Saves hours every week
           </p>
