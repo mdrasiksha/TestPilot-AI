@@ -4,24 +4,75 @@ import hashlib
 import hmac
 import json
 
+import razorpay
 from fastapi import APIRouter, Header, HTTPException, Request
 
 from app.core.config import get_settings
-from app.services.subscription_store import save_phone_user_mapping, set_user_pro_by_phone
+from app.services.subscription_store import (
+    get_user,
+    get_user_plan,
+    set_user_pro,
+    upsert_user,
+    user_to_dict,
+)
 
 router = APIRouter(tags=["subscription"])
 
 
-@router.post("/save-user", summary="Save phone to user mapping")
-async def save_user(payload: dict):
+@router.post("/auth/login", summary="Login or signup with email")
+async def login(payload: dict):
     user_id = str(payload.get("user_id") or "").strip()
-    phone = str(payload.get("phone") or "").strip()
+    email = str(payload.get("email") or "").strip().lower()
 
-    if not user_id or not phone:
-        raise HTTPException(status_code=400, detail="Missing user_id or phone")
+    if not user_id or not email:
+        raise HTTPException(status_code=400, detail="Missing user_id or email")
 
-    save_phone_user_mapping(phone=phone, user_id=user_id)
-    return {"status": "ok"}
+    user = upsert_user(user_id=user_id, email=email)
+    return {"status": "ok", "user": user_to_dict(user)}
+
+
+@router.get("/user/{user_id}", summary="Get user profile")
+async def get_profile(user_id: str):
+    user = get_user(user_id)
+    if not user:
+        return {
+            "user": {
+                "user_id": user_id,
+                "email": "",
+                "plan": get_user_plan(user_id),
+            }
+        }
+
+    return {"user": user_to_dict(user)}
+
+
+@router.post("/create-order", summary="Create Razorpay order")
+async def create_order(payload: dict):
+    settings = get_settings()
+    user_id = str(payload.get("user_id") or "").strip()
+
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Missing user_id")
+
+    if not settings.razorpay_key_id or not settings.razorpay_key_secret:
+        raise HTTPException(status_code=500, detail="Razorpay keys are not configured")
+
+    client = razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
+    options = {
+        "amount": 29900,
+        "currency": "INR",
+        "receipt": f"receipt_{user_id}",
+        "notes": {
+            "user_id": user_id,
+        },
+    }
+
+    try:
+        order = client.order.create(data=options)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to create order: {exc}") from exc
+
+    return order
 
 
 @router.post("/webhook", summary="Handle Razorpay webhook")
@@ -50,10 +101,10 @@ async def razorpay_webhook(
     event = payload.get("event")
     if event == "payment.captured":
         payment = payload.get("payload", {}).get("payment", {}).get("entity", {})
-        phone = str(payment.get("contact") or "").strip()
-        upgraded_user_id = set_user_pro_by_phone(phone)
+        notes = payment.get("notes") or {}
+        user_id = str(notes.get("user_id") or "").strip()
 
-        if upgraded_user_id:
-            print(f"User upgraded to PRO: {upgraded_user_id}")
+        if user_id:
+            set_user_pro(user_id)
 
     return {"status": "ok"}

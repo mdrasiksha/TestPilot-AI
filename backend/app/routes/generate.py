@@ -3,12 +3,11 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 
 from app.services.ai_service import ai_service
-from app.services.subscription_store import get_user_plan
+from app.services.subscription_store import get_user_plan, usage_store
 
 router = APIRouter(tags=["generate"])
 
 DAILY_LIMIT = 5
-usage_store: dict[str, dict[str, int | str]] = {}
 
 
 def get_today_date() -> str:

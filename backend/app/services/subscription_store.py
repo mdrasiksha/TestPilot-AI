@@ -1,26 +1,55 @@
 from __future__ import annotations
 
-phone_to_user_map: dict[str, str] = {}
-user_plans: dict[str, str] = {}
+from dataclasses import asdict, dataclass
 
 
-def normalize_phone(phone: str) -> str:
-    return "".join(ch for ch in phone if ch.isdigit())
+@dataclass
+class UserRecord:
+    user_id: str
+    email: str
+    plan: str = "free"
 
 
-def save_phone_user_mapping(phone: str, user_id: str) -> None:
-    normalized_phone = normalize_phone(phone)
-    if normalized_phone and user_id:
-        phone_to_user_map[normalized_phone] = user_id
+users: dict[str, UserRecord] = {}
+usage_store: dict[str, dict[str, int | str]] = {}
+
+
+def upsert_user(user_id: str, email: str) -> UserRecord:
+    normalized_id = user_id.strip()
+    normalized_email = email.strip().lower()
+
+    existing = users.get(normalized_id)
+    if existing:
+        existing.email = normalized_email or existing.email
+        return existing
+
+    record = UserRecord(user_id=normalized_id, email=normalized_email, plan="free")
+    users[normalized_id] = record
+    return record
+
+
+def get_user(user_id: str) -> UserRecord | None:
+    return users.get(user_id.strip())
 
 
 def get_user_plan(user_id: str) -> str:
-    return user_plans.get(user_id, "free")
+    user = get_user(user_id)
+    if not user:
+        return "free"
+    return user.plan
 
 
-def set_user_pro_by_phone(phone: str) -> str | None:
-    normalized_phone = normalize_phone(phone)
-    user_id = phone_to_user_map.get(normalized_phone)
-    if user_id:
-        user_plans[user_id] = "pro"
-    return user_id
+def set_user_plan(user_id: str, plan: str) -> UserRecord | None:
+    user = get_user(user_id)
+    if not user:
+        return None
+    user.plan = plan
+    return user
+
+
+def set_user_pro(user_id: str) -> UserRecord | None:
+    return set_user_plan(user_id=user_id, plan="pro")
+
+
+def user_to_dict(user: UserRecord) -> dict[str, str]:
+    return asdict(user)

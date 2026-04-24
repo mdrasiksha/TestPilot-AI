@@ -28,3 +28,9 @@ class JiraIssueRequest(BaseModel):
 class JiraIssueResponse(BaseModel):
     key: str
     url: str
+
+
+class User(BaseModel):
+    user_id: str
+    email: str
+    plan: str = "free"
