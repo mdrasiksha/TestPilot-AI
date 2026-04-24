@@ -21,6 +21,7 @@ router = APIRouter(tags=["subscription"])
 
 @router.post("/auth/login", summary="Login or signup with email")
 async def login(payload: dict):
+    print("Request received:", payload)
     user_id = str(payload.get("user_id") or "").strip()
     email = str(payload.get("email") or "").strip().lower()
 
@@ -48,6 +49,7 @@ async def get_profile(user_id: str):
 
 @router.post("/create-order", summary="Create Razorpay order")
 async def create_order(payload: dict):
+    print("Request received:", payload)
     settings = get_settings()
     user_id = str(payload.get("user_id") or "").strip()
 

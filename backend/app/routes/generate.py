@@ -17,6 +17,7 @@ def get_today_date() -> str:
 @router.post("", summary="Generate test cases")
 def generate(data: dict):
     try:
+        print("Request received:", data)
         user_story = str(data.get("prompt") or data.get("user_story") or "").strip()
         user_id = str(data.get("user_id") or "").strip()
 
