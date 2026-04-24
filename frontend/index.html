@@ -671,9 +671,9 @@
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script>
-      const API_BASE = '/api/v1';
-      const API_ROOT = '';
+    <script type="module">
+      const API_URL = import.meta.env.VITE_API_URL;
+      console.log('API URL:', API_URL);
       const RAZORPAY_KEY = 'YOUR_KEY';
       const HISTORY_KEY = 'testpilot-history';
       const MAX_HISTORY = 20;
@@ -740,7 +740,7 @@
         }
 
         const user_id = getUserId();
-        const response = await fetch(`${API_ROOT}/api/auth/login`, {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id, email }),
@@ -768,7 +768,7 @@
         }
 
         try {
-          const response = await fetch(`${API_ROOT}/api/user/${encodeURIComponent(user.user_id)}`);
+          const response = await fetch(`${API_URL}/api/user/${encodeURIComponent(user.user_id)}`);
           if (!response.ok) return;
           const payload = await response.json();
           if (payload?.user) {
@@ -1036,7 +1036,7 @@
 
         try {
           const userId = getUserId();
-          const response = await fetch(`${API_BASE}/generate`, {
+          const response = await fetch(`${API_URL}/api/v1/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1164,7 +1164,7 @@
         setError('');
 
         try {
-          const response = await fetch(`${API_BASE}/jira/${encodeURIComponent(key.trim())}`);
+          const response = await fetch(`${API_URL}/api/v1/jira/${encodeURIComponent(key.trim())}`);
           if (!response.ok) {
             const message = await response.text();
             throw new Error(`Jira import failed (${response.status}): ${message || 'Unknown error'}`);
@@ -1195,7 +1195,7 @@
         pushJiraBtn.disabled = true;
 
         try {
-          const response = await fetch(`${API_BASE}/jira/push`, {
+          const response = await fetch(`${API_URL}/api/v1/jira/push`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1246,7 +1246,7 @@
         }
 
         try {
-          const res = await fetch(`${API_ROOT}/api/create-order`, {
+          const res = await fetch(`${API_URL}/api/create-order`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: user.user_id }),
