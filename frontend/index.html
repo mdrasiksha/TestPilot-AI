@@ -528,6 +528,13 @@
           <div class="section">
             <div class="actions">
               <button id="generateBtn" class="btn btn-primary">Generate</button>
+              <button
+                id="upgradeBtn"
+                onClick="handleUpgrade()"
+                class="bg-blue-600 text-white px-4 py-2 rounded-xl"
+              >
+                Upgrade to Pro 🚀
+              </button>
               <button id="downloadExcelBtn" class="btn">Download Excel</button>
               <button id="copyBtn" class="btn">Copy</button>
               <button id="saveBtn" class="btn">Save</button>
@@ -558,21 +565,14 @@
         </aside>
       </section>
     </main>
-    <div id="upgradeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
-      <div class="modal">
-        <h3 id="upgradeTitle">🚀 Upgrade to Pro</h3>
-        <p>You’ve reached your free limit for today.</p>
-        <p>You already generated 5 test cases — looks like you’re finding this useful 👍</p>
-        <ul>
-          <li>Unlimited test case generation</li>
-          <li>Excel download</li>
-          <li>Better edge case coverage</li>
-          <li>Save hours of manual work</li>
-        </ul>
-        <p><strong>₹299/month (Early users)</strong></p>
+    <div id="upgradeModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
+      <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center modal">
+        <h2 id="upgradeTitle" class="text-xl font-bold mb-2">🚀 Upgrade to Pro</h2>
+        <p class="mb-3">You’ve reached your free limit (5/day)</p>
+        <p class="text-sm mb-4">Unlock unlimited test cases + Excel download</p>
         <div class="modal-actions">
-          <button id="whatsappUpgradeBtn" class="btn btn-primary">Upgrade Now</button>
-          <button id="closeUpgradeBtn" class="btn">Maybe Later</button>
+          <button id="whatsappUpgradeBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg w-full mb-2 btn btn-primary">Upgrade Now</button>
+          <button id="closeUpgradeBtn" class="text-gray-500 btn">Maybe Later</button>
         </div>
       </div>
     </div>
@@ -592,6 +592,7 @@
       const saveBtn = document.getElementById('saveBtn');
       const importJiraBtn = document.getElementById('importJiraBtn');
       const pushJiraBtn = document.getElementById('pushJiraBtn');
+      const upgradeBtn = document.getElementById('upgradeBtn');
       const loading = document.getElementById('loading');
       const output = document.getElementById('output');
       const errorBox = document.getElementById('error');
@@ -607,6 +608,7 @@
       let latestData = [];
       const DAILY_LIMIT = 5;
       let isLimitReached = false;
+      let showUpgrade = false;
 
       function getUserId() {
         let userId = localStorage.getItem('user_id');
@@ -634,7 +636,8 @@
       }
 
       function setShowUpgrade(show) {
-        upgradeModal.classList.toggle('visible', Boolean(show));
+        showUpgrade = Boolean(show);
+        upgradeModal.classList.toggle('visible', showUpgrade);
       }
 
       function escapeHtml(value) {
@@ -882,27 +885,34 @@
             throw new Error(`Generate failed (${response.status}): ${message || 'Unknown error'}`);
           }
 
-          const parsed = await response.json();
-          const remaining = parsed?.remaining === 'unlimited'
+          const data = await response.json();
+          console.log('API response:', data);
+
+          if (data?.error === 'LIMIT_REACHED') {
+            setShowUpgrade(true);
+            setLimitReached(true);
+            updateRemainingUsage(0);
+            return;
+          }
+
+          if (data?.remaining === 0) {
+            setShowUpgrade(true);
+          }
+
+          const remaining = data?.remaining === 'unlimited'
             ? 'unlimited'
-            : Number.isFinite(parsed?.remaining)
-              ? parsed.remaining
+            : Number.isFinite(data?.remaining)
+              ? data.remaining
               : DAILY_LIMIT;
           updateRemainingUsage(remaining);
           setLimitReached(remaining !== 'unlimited' && remaining <= 0);
 
-          if (parsed?.error === 'LIMIT_REACHED') {
-            setShowUpgrade(true);
-            setLimitReached(true);
-            return;
-          }
-
-          const candidateCases = Array.isArray(parsed?.data) ? parsed.data : [];
+          const candidateCases = Array.isArray(data?.data) ? data.data : [];
           if (!candidateCases.length) {
             latestData = [];
             renderEmptyState();
-            setError(parsed?.error || 'No structured test cases returned. Please refine your input.');
-            setRawOutput(JSON.stringify(parsed, null, 2));
+            setError(data?.error || 'No structured test cases returned. Please refine your input.');
+            setRawOutput(JSON.stringify(data, null, 2));
             return;
           }
           if (!validateStructuredCases(candidateCases)) {
@@ -1063,7 +1073,7 @@
         setError('');
       }
 
-      async function openUpgradeWhatsApp() {
+      async function handleUpgrade() {
         const phoneNumber = '918722250407';
         const userId = getUserId();
 
@@ -1094,7 +1104,8 @@
       saveBtn.addEventListener('click', saveCurrentToHistory);
       importJiraBtn.addEventListener('click', importFromJira);
       pushJiraBtn.addEventListener('click', pushToJira);
-      whatsappUpgradeBtn.addEventListener('click', openUpgradeWhatsApp);
+      upgradeBtn.addEventListener('click', handleUpgrade);
+      whatsappUpgradeBtn.addEventListener('click', handleUpgrade);
       closeUpgradeBtn.addEventListener('click', () => setShowUpgrade(false));
       upgradeModal.addEventListener('click', (event) => {
         if (event.target === upgradeModal) setShowUpgrade(false);
@@ -1105,6 +1116,7 @@
       updateRemainingUsage(DAILY_LIMIT);
       setLimitReached(false);
       setActionButtonsDisabled(true);
+      setShowUpgrade(true);
     </script>
   </body>
 </html>

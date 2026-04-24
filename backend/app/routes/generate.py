@@ -42,8 +42,6 @@ def generate(data: dict):
             if int(user_data["count"]) >= DAILY_LIMIT:
                 return {
                     "error": "LIMIT_REACHED",
-                    "message": "Daily limit reached (5 per day)",
-                    "data": [],
                     "remaining": 0,
                 }
 
