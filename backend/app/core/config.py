@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     jira_base_url: str = Field(default="", alias="JIRA_BASE_URL")
     jira_email: str = Field(default="", alias="JIRA_EMAIL")
     jira_api_token: str = Field(default="", alias="JIRA_API_TOKEN")
+    razorpay_webhook_secret: str = Field(default="", alias="RAZORPAY_WEBHOOK_SECRET")
 
     model_config = SettingsConfigDict(
         env_file=".env",

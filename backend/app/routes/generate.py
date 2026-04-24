@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 
 from app.services.ai_service import ai_service
+from app.services.subscription_store import get_user_plan
 
 router = APIRouter(tags=["generate"])
 
@@ -23,29 +24,34 @@ def generate(data: dict):
         if not user_id:
             user_id = "anonymous"
 
-        today = get_today_date()
-        user_data = usage_store.setdefault(user_id, {"date": today, "count": 0})
-
-        if user_data["date"] != today:
-            user_data["date"] = today
-            user_data["count"] = 0
-
-        if int(user_data["count"]) >= DAILY_LIMIT:
-            return {
-                "error": "LIMIT_REACHED",
-                "message": "Daily limit reached (5 per day)",
-                "data": [],
-                "remaining": 0,
-            }
-
         if not user_story:
             raise HTTPException(status_code=400, detail="Missing prompt")
 
-        user_data["count"] = int(user_data["count"]) + 1
-        result = ai_service.generate_test_cases(user_story)
-        remaining = DAILY_LIMIT - int(user_data["count"])
+        user_plan = get_user_plan(user_id)
+        is_pro_user = user_plan == "pro"
 
-        return {"data": result, "remaining": remaining}
+        remaining: int | str = "unlimited"
+        if not is_pro_user:
+            today = get_today_date()
+            user_data = usage_store.setdefault(user_id, {"date": today, "count": 0})
+
+            if user_data["date"] != today:
+                user_data["date"] = today
+                user_data["count"] = 0
+
+            if int(user_data["count"]) >= DAILY_LIMIT:
+                return {
+                    "error": "LIMIT_REACHED",
+                    "message": "Daily limit reached (5 per day)",
+                    "data": [],
+                    "remaining": 0,
+                }
+
+            user_data["count"] = int(user_data["count"]) + 1
+            remaining = DAILY_LIMIT - int(user_data["count"])
+
+        result = ai_service.generate_test_cases(user_story)
+        return {"data": result, "remaining": remaining, "plan": user_plan}
 
     except HTTPException as exc:
         print("API ERROR:", str(exc.detail))

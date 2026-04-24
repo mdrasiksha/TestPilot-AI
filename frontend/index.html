@@ -580,6 +580,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
       const API_BASE = 'https://testpilot-ai-ziwc.onrender.com/api/v1';
+      const API_ROOT = API_BASE.replace(/\/api\/v1\/?$/, '');
       const HISTORY_KEY = 'testpilot-history';
       const MAX_HISTORY = 20;
 
@@ -619,6 +620,10 @@
       }
 
       function updateRemainingUsage(remaining = DAILY_LIMIT) {
+        if (remaining === 'unlimited') {
+          usageDisplay.textContent = 'Pro plan active: unlimited usage';
+          return;
+        }
         usageDisplay.textContent = `Remaining free usage: ${remaining}/${DAILY_LIMIT}`;
       }
 
@@ -878,9 +883,13 @@
           }
 
           const parsed = await response.json();
-          const remaining = Number.isFinite(parsed?.remaining) ? parsed.remaining : DAILY_LIMIT;
+          const remaining = parsed?.remaining === 'unlimited'
+            ? 'unlimited'
+            : Number.isFinite(parsed?.remaining)
+              ? parsed.remaining
+              : DAILY_LIMIT;
           updateRemainingUsage(remaining);
-          setLimitReached(remaining <= 0);
+          setLimitReached(remaining !== 'unlimited' && remaining <= 0);
 
           if (parsed?.error === 'LIMIT_REACHED') {
             setShowUpgrade(true);
@@ -1054,8 +1063,23 @@
         setError('');
       }
 
-      function openUpgradeWhatsApp() {
+      async function openUpgradeWhatsApp() {
         const phoneNumber = '918722250407';
+        const userId = getUserId();
+
+        try {
+          await fetch(`${API_ROOT}/api/save-user`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: userId,
+              phone: phoneNumber,
+            }),
+          });
+        } catch (_error) {
+          // Best-effort save; continue with upgrade flow.
+        }
+
         const message = encodeURIComponent(
           'Hi, I want to upgrade to Pro plan for TestPilot AI (₹299). Please share details.'
         );
