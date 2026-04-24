@@ -672,7 +672,7 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script type="module">
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = 'https://testpilot-ai-ziwc.onrender.com';
       console.log('API URL:', API_URL);
       const RAZORPAY_KEY = 'YOUR_KEY';
       const HISTORY_KEY = 'testpilot-history';
@@ -953,6 +953,22 @@
         loading.classList.toggle('visible', isLoading);
       }
 
+      function setLoading(isLoading) {
+        setLoadingState(isLoading);
+      }
+
+      function setTestCases(cases) {
+        latestData = Array.isArray(cases) ? cases : [];
+        renderOutput(latestData);
+        setActionButtonsDisabled(latestData.length === 0);
+      }
+
+      function setRemaining(remaining = 0) {
+        const normalized = remaining === 'unlimited' ? 'unlimited' : Number(remaining ?? 0);
+        updateRemainingUsage(normalized);
+        setLimitReached(normalized !== 'unlimited' && normalized <= 0);
+      }
+
       function getHistory() {
         try {
           const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
@@ -1014,15 +1030,18 @@
         });
       }
 
-      async function generateTestCases() {
+      async function handleGenerate() {
         if (isLimitReached) {
           setShowUpgrade(true);
           return;
         }
 
-        const prompt = storyInput.value.trim();
-        if (!prompt) {
-          setError('Please enter a user story before generating test cases.');
+        const inputText = storyInput.value;
+        console.log('Generate clicked');
+        console.log('API URL:', API_URL);
+
+        if (!inputText || inputText.trim() === '') {
+          alert('Please enter a user story');
           return;
         }
 
@@ -1030,72 +1049,46 @@
         setStatus('');
         setRawOutput('');
         setShowUpgrade(false);
-        latestData = [];
-        renderEmptyState();
-        setLoadingState(true);
+        setTestCases([]);
+        setLoading(true);
 
         try {
-          const userId = getUserId();
-          const response = await fetch(`${API_URL}/api/v1/generate`, {
+          const response = await fetch(`${API_URL}/api/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              user_id: userId,
-              user_story: prompt,
+              user_id: getUserId(),
+              user_story: inputText,
             }),
           });
-
-          if (!response.ok) {
-            const message = await response.text();
-            throw new Error(`Generate failed (${response.status}): ${message || 'Unknown error'}`);
-          }
+          console.log('Response status:', response.status);
 
           const data = await response.json();
-          console.log('API response:', data);
+          console.log('Response data:', data);
 
           if (data?.error === 'LIMIT_REACHED') {
             setShowUpgrade(true);
             setLimitReached(true);
-            updateRemainingUsage(0);
+            setRemaining(0);
             return;
           }
 
-          if (data?.remaining === 0) {
-            setShowUpgrade(true);
-          }
-
-          const remaining = data?.remaining === 'unlimited'
-            ? 'unlimited'
-            : Number.isFinite(data?.remaining)
-              ? data.remaining
-              : DAILY_LIMIT;
-          updateRemainingUsage(remaining);
-          setLimitReached(remaining !== 'unlimited' && remaining <= 0);
-
-          const candidateCases = Array.isArray(data?.data) ? data.data : [];
-          if (!candidateCases.length) {
-            latestData = [];
-            renderEmptyState();
-            setError(data?.error || 'No structured test cases returned. Please refine your input.');
-            setRawOutput(JSON.stringify(data, null, 2));
-            return;
-          }
-          if (!validateStructuredCases(candidateCases)) {
-            latestData = [];
-            renderEmptyState();
-            setError('No structured test cases returned. Please refine your input.');
-            return;
-          }
-
-          latestData = candidateCases;
-          renderOutput(latestData);
+          const responseCases = Array.isArray(data?.test_cases)
+            ? data.test_cases
+            : Array.isArray(data?.data)
+              ? data.data
+              : [];
+          const candidateCases = validateStructuredCases(responseCases) ? responseCases : [];
+          setTestCases(candidateCases);
+          setRemaining(data?.remaining ?? 0);
           setStatus('Test cases generated successfully.');
-          saveHistoryEntry(prompt, latestData);
+          saveHistoryEntry(inputText.trim(), latestData);
         } catch (error) {
-          renderEmptyState();
+          console.error('ERROR:', error);
+          alert('Failed to generate test cases. Check console.');
           setError(error.message || 'An unexpected error occurred while generating test cases.');
         } finally {
-          setLoadingState(false);
+          setLoading(false);
         }
       }
 
@@ -1290,7 +1283,7 @@
           setError(error.message || 'Unable to login.');
         }
       });
-      generateBtn.addEventListener('click', generateTestCases);
+      generateBtn.addEventListener('click', handleGenerate);
       downloadExcelBtn.addEventListener('click', handleDownloadExcel);
       copyBtn.addEventListener('click', copyResults);
       saveBtn.addEventListener('click', saveCurrentToHistory);
