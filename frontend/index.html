@@ -255,6 +255,12 @@
         display: block;
       }
 
+      .usage {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
       .raw-output {
         display: none;
         margin-top: 14px;
@@ -405,6 +411,44 @@
         font-size: 0.86rem;
       }
 
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.42);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        z-index: 1000;
+      }
+
+      .modal-backdrop.visible {
+        display: flex;
+      }
+
+      .modal {
+        width: min(440px, 100%);
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-soft);
+        padding: 18px;
+      }
+
+      .modal h3 {
+        margin: 0 0 6px;
+      }
+
+      .modal p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
       @media (max-width: 1024px) {
         .layout {
           grid-template-columns: 1fr;
@@ -476,6 +520,7 @@
               <span class="spinner" aria-hidden="true"></span>
               <span>Generating test cases...</span>
             </div>
+            <div id="usageDisplay" class="usage">Remaining free usage: 10/10</div>
             <div id="error" class="error" role="alert"></div>
             <div id="status" class="status" aria-live="polite"></div>
           </div>
@@ -494,6 +539,15 @@
         </aside>
       </section>
     </main>
+    <div id="upgradeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
+      <div class="modal">
+        <h3 id="upgradeTitle">Daily limit reached</h3>
+        <p>You have used your 10 free generations for today. Upgrade to continue.</p>
+        <div class="modal-actions">
+          <button id="closeUpgradeBtn" class="btn">Close</button>
+        </div>
+      </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
@@ -515,8 +569,31 @@
       const statusBox = document.getElementById('status');
       const rawOutput = document.getElementById('rawOutput');
       const historyContainer = document.getElementById('history');
+      const usageDisplay = document.getElementById('usageDisplay');
+      const upgradeModal = document.getElementById('upgradeModal');
+      const closeUpgradeBtn = document.getElementById('closeUpgradeBtn');
 
       let latestData = [];
+      const DAILY_LIMIT = 10;
+
+      function getUserId() {
+        let userId = localStorage.getItem('user_id');
+
+        if (!userId) {
+          userId = crypto.randomUUID();
+          localStorage.setItem('user_id', userId);
+        }
+
+        return userId;
+      }
+
+      function updateRemainingUsage(remaining = DAILY_LIMIT) {
+        usageDisplay.textContent = `Remaining free usage: ${remaining}/${DAILY_LIMIT}`;
+      }
+
+      function setShowUpgrade(show) {
+        upgradeModal.classList.toggle('visible', Boolean(show));
+      }
 
       function escapeHtml(value) {
         return String(value)
@@ -737,15 +814,20 @@
         setError('');
         setStatus('');
         setRawOutput('');
+        setShowUpgrade(false);
         latestData = [];
         renderEmptyState();
         setLoadingState(true);
 
         try {
+          const userId = getUserId();
           const response = await fetch(`${API_BASE}/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({
+              user_id: userId,
+              user_story: prompt,
+            }),
           });
 
           if (!response.ok) {
@@ -753,17 +835,25 @@
             throw new Error(`Generate failed (${response.status}): ${message || 'Unknown error'}`);
           }
 
-          const responseText = await response.text();
-          const parsed = fixAndParseJSON(responseText);
-          if (Array.isArray(parsed) && parsed.length === 0) {
-            latestData = [];
-            renderEmptyState();
-            setError('AI response could not be structured. Showing raw output.');
-            setRawOutput(responseText);
+          const parsed = await response.json();
+          const remaining = Number.isFinite(parsed?.remaining) ? parsed.remaining : DAILY_LIMIT;
+          updateRemainingUsage(remaining);
+
+          if (parsed?.error === 'LIMIT_REACHED') {
+            setShowUpgrade(true);
+            setStatus('');
+            setError('Daily free limit reached.');
             return;
           }
 
-          const candidateCases = Array.isArray(parsed?.data) ? parsed.data : parsed;
+          const candidateCases = Array.isArray(parsed?.data) ? parsed.data : [];
+          if (!candidateCases.length) {
+            latestData = [];
+            renderEmptyState();
+            setError(parsed?.error || 'No structured test cases returned. Please refine your input.');
+            setRawOutput(JSON.stringify(parsed, null, 2));
+            return;
+          }
           if (!validateStructuredCases(candidateCases)) {
             latestData = [];
             renderEmptyState();
@@ -929,9 +1019,14 @@
       saveBtn.addEventListener('click', saveCurrentToHistory);
       importJiraBtn.addEventListener('click', importFromJira);
       pushJiraBtn.addEventListener('click', pushToJira);
+      closeUpgradeBtn.addEventListener('click', () => setShowUpgrade(false));
+      upgradeModal.addEventListener('click', (event) => {
+        if (event.target === upgradeModal) setShowUpgrade(false);
+      });
 
       updateCharCount();
       renderHistory();
+      updateRemainingUsage(DAILY_LIMIT);
       setActionButtonsDisabled(true);
     </script>
   </body>
