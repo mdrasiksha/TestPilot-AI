@@ -630,12 +630,12 @@
                   onClick="handleUpgrade()"
                   class="btn upgrade-btn-primary"
                 >
-                  🚀 Upgrade to Pro
+                  🚀 Upgrade to Pro - ₹99
                 </button>
               </div>
             </div>
-            <p class="upgrade-subtext">Unlock unlimited test cases</p>
-            <div id="upgradeBanner" class="upgrade-banner">Upgrade to Pro for unlimited test cases</div>
+            <p class="upgrade-subtext">Unlock unlimited test cases for ₹99</p>
+            <div id="upgradeBanner" class="upgrade-banner">Upgrade to Pro for unlimited test cases at ₹99</div>
             <div id="error" class="error" role="alert"></div>
             <div id="status" class="status" aria-live="polite"></div>
           </div>
@@ -656,9 +656,9 @@
     </main>
     <div id="upgradeModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
       <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center modal">
-        <h2 id="upgradeTitle" class="text-xl font-bold mb-2">🚀 Upgrade to Pro</h2>
+        <h2 id="upgradeTitle" class="text-xl font-bold mb-2">🚀 Upgrade to Pro - ₹99</h2>
         <p class="mb-3">You’ve reached your free limit (5/day)</p>
-        <p class="text-sm mb-4">Unlock unlimited test cases + Excel download</p>
+        <p class="text-sm mb-4">Unlock unlimited test cases + Excel download for just ₹99</p>
         <div class="modal-actions">
           <button id="whatsappUpgradeBtn" class="btn upgrade-btn-primary upgrade-btn-modal">Upgrade Now 🚀</button>
           <p class="text-xs text-gray-400 mt-2 text-center" style="margin: 8px 0 4px; font-size: 0.75rem; color: #9ca3af; text-align: center;">
@@ -1229,39 +1229,14 @@
         setError('');
       }
 
-      async function handleUpgrade() {
+      function handleUpgrade() {
         const user = getStoredUser();
         if (!user?.user_id) {
           setError('Please login before upgrading.');
           return;
         }
 
-        try {
-          const res = await fetch(`${API_URL}/api/create-payment-link`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: user.user_id,
-              email: user.email || '',
-            }),
-          });
-
-          if (!res.ok) {
-            const message = await res.text();
-            throw new Error(`Payment link creation failed (${res.status}): ${message || 'Unknown error'}`);
-          }
-
-          const data = await res.json();
-          const paymentLinkUrl = data?.payment_link_url;
-          if (!paymentLinkUrl) {
-            throw new Error('Payment link URL missing in response.');
-          }
-          window.location.href = paymentLinkUrl;
-        } catch (error) {
-          console.error('Upgrade failed:', error);
-          setError(error.message || 'Unable to start payment.');
-          alert(error.message || 'Unable to start payment.');
-        }
+        window.location.href = './pricing.html';
       }
 
       async function handlePaymentSuccessCallback() {
