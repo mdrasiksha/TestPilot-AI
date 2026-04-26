@@ -3,184 +3,1309 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Razorpay SaaS Demo</title>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <title>TestPilot AI</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        max-width: 700px;
-        margin: 40px auto;
-        padding: 0 16px;
+      :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --background: #f8fafc;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --danger-bg: #fef2f2;
+        --danger-border: #fecaca;
+        --danger-text: #b91c1c;
+        --high: #ef4444;
+        --medium: #f59e0b;
+        --low: #16a34a;
+        --shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.08);
       }
-      .card {
-        border: 1px solid #ddd;
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at top, #eef4ff 0%, var(--background) 40%);
+      }
+
+      .shell {
+        width: min(1160px, calc(100% - 40px));
+        margin: 28px auto 40px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid #e2e8f080;
+        backdrop-filter: blur(8px);
+        border-radius: 16px;
+        padding: 14px 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+        margin-bottom: 24px;
+      }
+
+      .logo {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+
+      .tagline {
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .auth-email {
+        border: 1px solid var(--border);
         border-radius: 10px;
+        padding: 8px 10px;
+        min-width: 220px;
+      }
+
+      .plan-pill {
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1px solid var(--border);
+      }
+
+      .plan-pill.pro {
+        color: #166534;
+        border-color: #86efac;
+        background: #dcfce7;
+      }
+
+      .hero {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .hero h2 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        letter-spacing: -0.03em;
+      }
+
+      .hero p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 1.02rem;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 20px;
+        align-items: start;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow-soft);
+        padding: 24px;
+      }
+
+      .section + .section {
+        margin-top: 22px;
+      }
+
+      .section-title {
+        margin: 0 0 10px;
+        font-size: 1rem;
+        font-weight: 650;
+      }
+
+      .label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .label strong {
+        font-size: 0.95rem;
+      }
+
+      .char-count {
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 170px;
+        padding: 14px 15px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        font: inherit;
+        line-height: 1.45;
+        resize: vertical;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
+      }
+
+      .hint {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .btn {
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #1e293b;
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+          transform 0.08s ease, box-shadow 0.2s ease;
+      }
+
+      .btn:hover:not(:disabled) {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+
+      .btn:active:not(:disabled) {
+        transform: translateY(1px);
+      }
+
+      .btn-primary {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-hover);
+        border-color: var(--primary-hover);
+      }
+
+      .btn:disabled {
+        opacity: 0.52;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .loading {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .loading.visible {
+        display: inline-flex;
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid #bfdbfe;
+        border-top-color: var(--primary);
+        animation: spin 0.7s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        display: none;
+        margin-top: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--danger-border);
+        background: var(--danger-bg);
+        color: var(--danger-text);
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+
+      .error.visible {
+        display: block;
+      }
+
+      .status {
+        display: none;
+        margin-top: 12px;
+        border-radius: 12px;
+        border: 1px solid #bbf7d0;
+        background: #f0fdf4;
+        color: #166534;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+
+      .status.visible {
+        display: block;
+      }
+
+      .usage {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .usage-cta-row {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .upgrade-cta-wrap {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .upgrade-btn-primary {
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        font-weight: 700;
+        padding: 12px 20px;
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
+      }
+
+      .upgrade-btn-primary:hover:not(:disabled) {
+        background: #15803d;
+        border-color: #15803d;
+      }
+
+      .upgrade-subtext {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 0.82rem;
+      }
+
+      .upgrade-btn-modal {
+        width: 100%;
+        border-radius: 0.75rem;
+        box-shadow: none;
+      }
+
+      .upgrade-banner {
+        display: none;
+        margin-top: 10px;
+        border: 1px solid #fde68a;
+        background: #fffbeb;
+        color: #92400e;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .upgrade-banner.visible {
+        display: block;
+      }
+
+      .raw-output {
+        display: none;
+        margin-top: 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 12px;
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .raw-output.visible {
+        display: block;
+      }
+
+      .table-shell {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .table-scroll {
+        max-height: 370px;
+        overflow: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--border);
+        padding: 11px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #f8fafc;
+        color: #334155;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+      }
+
+      tbody tr:hover {
+        background: #f8fbff;
+      }
+
+      .steps {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .empty {
+        border: 1px dashed #cbd5e1;
+        background: #f8fafc;
+        border-radius: 12px;
+        text-align: center;
+        color: var(--muted);
         padding: 20px;
       }
-      button {
-        border: none;
-        border-radius: 8px;
-        background: #1d4ed8;
-        color: #fff;
+
+      .badge {
+        display: inline-flex;
+        border-radius: 999px;
+        padding: 3px 10px;
+        font-size: 0.75rem;
         font-weight: 700;
-        padding: 12px 16px;
+      }
+
+      .badge.high {
+        color: #991b1b;
+        background: #fee2e2;
+      }
+
+      .badge.medium {
+        color: #92400e;
+        background: #fef3c7;
+      }
+
+      .badge.low {
+        color: #166534;
+        background: #dcfce7;
+      }
+
+      .history-card h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .history-sub {
+        margin: 6px 0 12px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 635px;
+        overflow: auto;
+      }
+
+      .history-item {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px;
+        background: #fff;
         cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
       }
-      button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
+
+      .history-item:hover {
+        border-color: #93c5fd;
+        background: #f8fbff;
       }
-      #status {
-        margin-top: 12px;
-        color: #0f172a;
+
+      .history-item p {
+        margin: 0;
+        color: #1e293b;
+        font-size: 0.87rem;
+        line-height: 1.35;
       }
-      #error {
-        margin-top: 12px;
-        color: #b91c1c;
+
+      .history-item small {
+        margin-top: 6px;
+        display: block;
+        color: var(--muted);
+      }
+
+      .history-empty {
+        border: 1px dashed #cbd5e1;
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.42);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        z-index: 1000;
+      }
+
+      .modal-backdrop.visible {
+        display: flex;
+      }
+
+      .modal {
+        width: min(440px, 100%);
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-soft);
+        padding: 18px;
+      }
+
+      .modal h3 {
+        margin: 0 0 6px;
+      }
+
+      .modal p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .history-list {
+          max-height: 260px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .shell {
+          width: calc(100% - 22px);
+          margin-top: 14px;
+        }
+
+        .card {
+          padding: 16px;
+          border-radius: 14px;
+        }
+
+        .actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        .usage-cta-row {
+          align-items: stretch;
+        }
+
+        .upgrade-cta-wrap {
+          width: 100%;
+          justify-content: space-between;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="card">
-      <h1>SaaS Access</h1>
-      <p id="usage">Remaining free usage: 5/5</p>
-      <button id="upgradeBtn">🚀 Upgrade to Pro</button>
-      <button id="generateBtn">Use Generate</button>
-      <p id="status"></p>
-      <p id="error"></p>
+    <main class="shell">
+      <header class="topbar">
+        <h1 class="logo">TestPilot AI</h1>
+        <div class="topbar-right">
+          <span class="tagline">AI QA Generator</span>
+          <input id="emailInput" class="auth-email" type="email" placeholder="Enter email" />
+          <button id="loginBtn" class="btn">Login / Signup</button>
+          <span id="planPill" class="plan-pill">Free</span>
+        </div>
+      </header>
+
+      <section class="hero">
+        <h2>Generate QA Test Cases in Seconds</h2>
+        <p>Turn user stories into structured test cases instantly</p>
+      </section>
+
+      <section class="layout">
+        <article class="card app-card">
+          <div class="section">
+            <div class="label">
+              <strong>User Story</strong>
+              <span id="charCount" class="char-count">0 characters</span>
+            </div>
+            <textarea
+              id="story"
+              placeholder="Example: As a project manager, I want to assign tasks with due dates so that team members can track and complete work on time."
+            ></textarea>
+            <p class="hint">Tip: Include role, action, and expected outcome for better results.</p>
+          </div>
+
+          <div class="section">
+            <div class="actions">
+              <button id="generateBtn" class="btn btn-primary">Generate</button>
+              <button id="downloadExcelBtn" class="btn">Download Excel</button>
+              <button id="copyBtn" class="btn">Copy</button>
+              <button id="saveBtn" class="btn">Save</button>
+              <button id="importJiraBtn" class="btn">Import from Jira</button>
+              <button id="pushJiraBtn" class="btn">Push to Jira</button>
+            </div>
+            <div id="loading" class="loading" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Generating test cases...</span>
+            </div>
+            <div class="usage-cta-row">
+              <div id="usageDisplay" class="usage">Remaining free usage: 5/5</div>
+              <div class="upgrade-cta-wrap">
+                <button
+                  id="upgradeBtn"
+                  onClick="handleUpgrade()"
+                  class="btn upgrade-btn-primary"
+                >
+                  🚀 Upgrade to Pro
+                </button>
+              </div>
+            </div>
+            <p class="upgrade-subtext">Unlock unlimited test cases</p>
+            <div id="upgradeBanner" class="upgrade-banner">Upgrade to Pro for unlimited test cases</div>
+            <div id="error" class="error" role="alert"></div>
+            <div id="status" class="status" aria-live="polite"></div>
+          </div>
+
+          <div class="section">
+            <h3 class="section-title">Output</h3>
+            <div id="output" class="empty">No test cases yet</div>
+            <pre id="rawOutput" class="raw-output"></pre>
+          </div>
+        </article>
+
+        <aside class="card history-card">
+          <h3>History</h3>
+          <p class="history-sub">Click an item to reload prompt and results.</p>
+          <div id="history" class="history-list"></div>
+        </aside>
+      </section>
+    </main>
+    <div id="upgradeModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
+      <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center modal">
+        <h2 id="upgradeTitle" class="text-xl font-bold mb-2">🚀 Upgrade to Pro</h2>
+        <p class="mb-3">You’ve reached your free limit (5/day)</p>
+        <p class="text-sm mb-4">Unlock unlimited test cases + Excel download</p>
+        <div class="modal-actions">
+          <button id="whatsappUpgradeBtn" class="btn upgrade-btn-primary upgrade-btn-modal">Upgrade Now 🚀</button>
+          <p class="text-xs text-gray-400 mt-2 text-center" style="margin: 8px 0 4px; font-size: 0.75rem; color: #9ca3af; text-align: center;">
+            Used by QA engineers • Saves hours every week
+          </p>
+          <button id="closeUpgradeBtn" class="text-gray-500 btn">Maybe Later</button>
+        </div>
+      </div>
     </div>
 
-    <script>
-      const API_BASE = "http://127.0.0.1:8000";
-      const usageEl = document.getElementById("usage");
-      const statusEl = document.getElementById("status");
-      const errorEl = document.getElementById("error");
-      const upgradeBtn = document.getElementById("upgradeBtn");
-      const generateBtn = document.getElementById("generateBtn");
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script type="module">
+      const API_URL = 'https://testpilot-ai-ziwc.onrender.com';
+      console.log('API URL:', API_URL);
+      const RAZORPAY_KEY = 'YOUR_KEY';
+      const HISTORY_KEY = 'testpilot-history';
+      const MAX_HISTORY = 20;
 
-      function setError(message) {
-        errorEl.textContent = message || "";
-      }
+      const storyInput = document.getElementById('story');
+      const emailInput = document.getElementById('emailInput');
+      const loginBtn = document.getElementById('loginBtn');
+      const planPill = document.getElementById('planPill');
+      const charCount = document.getElementById('charCount');
+      const generateBtn = document.getElementById('generateBtn');
+      const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+      const copyBtn = document.getElementById('copyBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      const importJiraBtn = document.getElementById('importJiraBtn');
+      const pushJiraBtn = document.getElementById('pushJiraBtn');
+      const upgradeBtn = document.getElementById('upgradeBtn');
+      const loading = document.getElementById('loading');
+      const output = document.getElementById('output');
+      const errorBox = document.getElementById('error');
+      const statusBox = document.getElementById('status');
+      const rawOutput = document.getElementById('rawOutput');
+      const historyContainer = document.getElementById('history');
+      const usageDisplay = document.getElementById('usageDisplay');
+      const upgradeBanner = document.getElementById('upgradeBanner');
+      const upgradeModal = document.getElementById('upgradeModal');
+      const whatsappUpgradeBtn = document.getElementById('whatsappUpgradeBtn');
+      const closeUpgradeBtn = document.getElementById('closeUpgradeBtn');
 
-      function setStatus(message) {
-        statusEl.textContent = message || "";
-      }
+      let latestData = [];
+      const DAILY_LIMIT = 5;
+      let isLimitReached = false;
+      let showUpgrade = false;
 
-      async function refreshUsage() {
+      function getStoredUser() {
         try {
-          const response = await fetch(`${API_BASE}/user-state`);
-          const data = await response.json();
+          const user = JSON.parse(localStorage.getItem('user') || 'null');
+          if (!user || !user.user_id) return null;
+          return user;
+        } catch (_error) {
+          return null;
+        }
+      }
 
-          if (data.is_paid) {
-            usageEl.textContent = "Unlimited access";
+      function getUserId() {
+        const currentUser = getStoredUser();
+        if (currentUser?.user_id) return currentUser.user_id;
+
+        const fallbackId = localStorage.getItem('user_id') || crypto.randomUUID();
+        localStorage.setItem('user_id', fallbackId);
+        return fallbackId;
+      }
+
+      function updatePlanBadge(plan = 'free') {
+        const normalized = plan === 'pro' ? 'pro' : 'free';
+        planPill.textContent = normalized.toUpperCase();
+        planPill.classList.toggle('pro', normalized === 'pro');
+      }
+
+      async function loginOrSignup() {
+        const email = emailInput.value.trim().toLowerCase();
+        if (!email) {
+          setError('Enter a valid email to login.');
+          return;
+        }
+
+        const user_id = getUserId();
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id, email }),
+        });
+
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(`Auth failed (${response.status}): ${message || 'Unknown error'}`);
+        }
+
+        const payload = await response.json();
+        localStorage.setItem('user', JSON.stringify(payload.user));
+        updatePlanBadge(payload.user.plan);
+        updateRemainingUsage(payload.user.plan === 'pro' ? 'unlimited' : DAILY_LIMIT);
+        setLimitReached(false);
+        setStatus(`Logged in as ${payload.user.email}`);
+        setError('');
+      }
+
+      async function syncUserPlan() {
+        const user = getStoredUser();
+        if (!user?.user_id) {
+          updatePlanBadge('free');
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_URL}/api/user/${encodeURIComponent(user.user_id)}`);
+          if (!response.ok) return;
+          const payload = await response.json();
+          if (payload?.user) {
+            const merged = { ...user, ...payload.user };
+            localStorage.setItem('user', JSON.stringify(merged));
+            if (merged.email) emailInput.value = merged.email;
+            updatePlanBadge(merged.plan);
+            if (merged.plan === 'pro') {
+              updateRemainingUsage('unlimited');
+              setLimitReached(false);
+            }
+          }
+        } catch (_error) {
+          // Ignore sync failures; local state is still usable.
+        }
+      }
+
+      function updateRemainingUsage(remaining = DAILY_LIMIT) {
+        if (remaining === 'unlimited') {
+          usageDisplay.textContent = 'Pro plan active: unlimited usage';
+          return;
+        }
+        usageDisplay.textContent = `Remaining free usage: ${remaining}/${DAILY_LIMIT}`;
+      }
+
+      function setLimitReached(limitReached) {
+        isLimitReached = Boolean(limitReached);
+        generateBtn.disabled = isLimitReached;
+        upgradeBanner.classList.toggle('visible', isLimitReached);
+      }
+
+      function setShowUpgrade(show) {
+        showUpgrade = Boolean(show);
+        upgradeModal.classList.toggle('visible', showUpgrade);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+
+      function updateCharCount() {
+        charCount.textContent = `${storyInput.value.length} characters`;
+      }
+
+      function setError(message = '') {
+        errorBox.textContent = message;
+        errorBox.classList.toggle('visible', Boolean(message));
+      }
+
+      function setStatus(message = '') {
+        statusBox.textContent = message;
+        statusBox.classList.toggle('visible', Boolean(message));
+      }
+
+      function setRawOutput(message = '') {
+        rawOutput.textContent = message;
+        rawOutput.classList.toggle('visible', Boolean(message));
+      }
+
+      function fixAndParseJSON(responseText) {
+        try {
+          return JSON.parse(responseText);
+        } catch (_firstError) {
+          try {
+            let cleaned = responseText;
+            const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+            if (arrayMatch) cleaned = arrayMatch[0];
+
+            cleaned = cleaned
+              .replace(/,\s*}/g, '}')
+              .replace(/,\s*]/g, ']')
+              .replace(/'/g, '"')
+              .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)/g, '$1"$2"$3');
+
+            return JSON.parse(cleaned);
+          } catch (_secondError) {
+            return [];
+          }
+        }
+      }
+
+      function isValidStructuredCase(testCase) {
+        if (!testCase || typeof testCase !== 'object') return false;
+        const required = ['id', 'steps', 'expected_result', 'priority'];
+        return required.every((key) => Object.hasOwn(testCase, key));
+      }
+
+      function validateStructuredCases(parsedData) {
+        if (!Array.isArray(parsedData)) return false;
+        return parsedData.every(isValidStructuredCase);
+      }
+
+      function normalizeSteps(steps) {
+        if (Array.isArray(steps)) return steps;
+        if (typeof steps !== 'string') return [];
+        return steps
+          .split(/\n|;|\d+\./)
+          .map((step) => step.trim())
+          .filter(Boolean);
+      }
+
+      function priorityClass(priority) {
+        const value = String(priority || 'Medium').toLowerCase();
+        if (value.includes('high')) return 'high';
+        if (value.includes('low')) return 'low';
+        return 'medium';
+      }
+
+      function renderEmptyState() {
+        output.className = 'empty';
+        output.textContent = 'No test cases yet';
+      }
+
+      function renderOutput(cases) {
+        if (!cases.length) {
+          renderEmptyState();
+          return;
+        }
+
+        const rows = cases
+          .map((testCase, index) => {
+            const id = testCase.id || testCase.test_id || `TC-${index + 1}`;
+            const title = testCase.title || testCase.name || 'Untitled test case';
+            const expected = testCase.expected_result || testCase.expected || testCase.result || '-';
+            const priority = testCase.priority || testCase.severity || 'Medium';
+            const pClass = priorityClass(priority);
+            const steps = normalizeSteps(testCase.steps || testCase.procedure || testCase.action_items);
+            const stepsHtml = steps.length
+              ? `<ul class="steps">${steps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ul>`
+              : '<span>-</span>';
+
+            return `
+              <tr>
+                <td>${escapeHtml(id)}</td>
+                <td>${escapeHtml(title)}</td>
+                <td>${stepsHtml}</td>
+                <td>${escapeHtml(expected)}</td>
+                <td><span class="badge ${pClass}">${escapeHtml(priority)}</span></td>
+              </tr>
+            `;
+          })
+          .join('');
+
+        output.className = 'table-shell';
+        output.innerHTML = `
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Steps</th>
+                  <th>Expected</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      function setActionButtonsDisabled(disabled) {
+        downloadExcelBtn.disabled = disabled;
+        copyBtn.disabled = disabled;
+        saveBtn.disabled = disabled;
+        pushJiraBtn.disabled = disabled;
+      }
+
+      function setLoadingState(isLoading) {
+        generateBtn.disabled = isLoading || isLimitReached;
+        if (isLoading) {
+          setActionButtonsDisabled(true);
+        } else {
+          setActionButtonsDisabled(latestData.length === 0);
+        }
+        loading.classList.toggle('visible', isLoading);
+      }
+
+      function setLoading(isLoading) {
+        setLoadingState(isLoading);
+      }
+
+      function setTestCases(cases) {
+        latestData = Array.isArray(cases) ? cases : [];
+        renderOutput(latestData);
+        setActionButtonsDisabled(latestData.length === 0);
+      }
+
+      function setRemaining(remaining = 0) {
+        const normalized = remaining === 'unlimited' ? 'unlimited' : Number(remaining ?? 0);
+        updateRemainingUsage(normalized);
+        setLimitReached(normalized !== 'unlimited' && normalized <= 0);
+      }
+
+      function getHistory() {
+        try {
+          const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+          return Array.isArray(history) ? history : [];
+        } catch (_error) {
+          return [];
+        }
+      }
+
+      function writeHistory(history) {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+      }
+
+      function saveHistoryEntry(prompt, cases) {
+        const existing = getHistory().filter((item) => item.prompt !== prompt);
+        const entry = {
+          id: Date.now(),
+          prompt,
+          data: cases,
+          createdAt: new Date().toISOString(),
+        };
+
+        writeHistory([entry, ...existing]);
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const history = getHistory();
+        historyContainer.innerHTML = '';
+
+        if (!history.length) {
+          historyContainer.innerHTML = '<div class="history-empty">No saved prompts yet.</div>';
+          return;
+        }
+
+        history.forEach((item) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'history-item';
+
+          const dateLabel = new Date(item.createdAt).toLocaleString();
+          button.innerHTML = `
+            <p>${escapeHtml(item.prompt)}</p>
+            <small>${escapeHtml(dateLabel)}</small>
+          `;
+
+          button.addEventListener('click', () => {
+            storyInput.value = item.prompt || '';
+            updateCharCount();
+            latestData = Array.isArray(item.data) ? item.data : [];
+            renderOutput(latestData);
+            setActionButtonsDisabled(latestData.length === 0);
+            setError('');
+            setStatus('');
+            setRawOutput('');
+          });
+
+          historyContainer.appendChild(button);
+        });
+      }
+
+      async function handleGenerate() {
+        if (isLimitReached) {
+          setShowUpgrade(true);
+          return;
+        }
+
+        const inputText = storyInput.value;
+        console.log('Generate clicked');
+        console.log('API URL:', API_URL);
+
+        if (!inputText || inputText.trim() === '') {
+          alert('Please enter a user story');
+          return;
+        }
+
+        setError('');
+        setStatus('');
+        setRawOutput('');
+        setShowUpgrade(false);
+        setTestCases([]);
+        setLoading(true);
+
+        try {
+          const response = await fetch(`${API_URL}/api/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: getUserId(),
+              user_story: inputText,
+            }),
+          });
+          console.log('Response status:', response.status);
+
+          const data = await response.json();
+          console.log('Response data:', data);
+
+          if (data?.error === 'LIMIT_REACHED') {
+            setShowUpgrade(true);
+            setLimitReached(true);
+            setRemaining(0);
             return;
           }
 
-          const remaining = Math.max(0, 5 - Number(data.usage_count || 0));
-          usageEl.textContent = `Remaining free usage: ${remaining}/5`;
-        } catch (err) {
-          setError(`Unable to fetch user state: ${err.message}`);
-        }
-      }
-
-      async function createOrder() {
-        const response = await fetch(`${API_BASE}/create-order`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({})
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.detail || "Failed to create order");
-        }
-
-        return data;
-      }
-
-      async function verifyPayment(payload) {
-        const response = await fetch(`${API_BASE}/verify-payment`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.detail || "Payment verification failed");
-        }
-
-        return data;
-      }
-
-      upgradeBtn.addEventListener("click", async () => {
-        setError("");
-        setStatus("");
-        upgradeBtn.disabled = true;
-
-        try {
-          const order = await createOrder();
-
-          const options = {
-            key: order.key_id,
-            amount: order.amount,
-            currency: order.currency,
-            name: "My SaaS App",
-            description: "Pro Plan Upgrade",
-            order_id: order.order_id,
-            handler: async function (response) {
-              try {
-                await verifyPayment(response);
-                setStatus("Payment successful. Unlimited access enabled.");
-                await refreshUsage();
-              } catch (err) {
-                setError(err.message);
-              }
-            },
-            modal: {
-              ondismiss: function () {
-                setStatus("Payment popup closed.");
-              }
-            }
-          };
-
-          const rzp = new Razorpay(options);
-          rzp.on("payment.failed", function (response) {
-            const description = response.error?.description || "Payment failed";
-            setError(description);
-          });
-          rzp.open();
-        } catch (err) {
-          setError(err.message);
+          const responseCases = Array.isArray(data?.test_cases)
+            ? data.test_cases
+            : Array.isArray(data?.data)
+              ? data.data
+              : [];
+          const candidateCases = validateStructuredCases(responseCases) ? responseCases : [];
+          setTestCases(candidateCases);
+          setRemaining(data?.remaining ?? 0);
+          setStatus('Test cases generated successfully.');
+          saveHistoryEntry(inputText.trim(), latestData);
+        } catch (error) {
+          console.error('ERROR:', error);
+          alert('Failed to generate test cases. Check console.');
+          setError(error.message || 'An unexpected error occurred while generating test cases.');
         } finally {
-          upgradeBtn.disabled = false;
+          setLoading(false);
         }
-      });
+      }
 
-      generateBtn.addEventListener("click", async () => {
-        setError("");
-        setStatus("");
+      function toCellText(value) {
+        if (Array.isArray(value)) {
+          return value.join('\n');
+        }
+        return value == null ? '' : String(value);
+      }
+
+      function downloadExcel(testCases) {
+        if (!testCases || !testCases.length) return false;
+        const worksheetData = testCases.map((tc, index) => ({
+          'Test Case ID': tc.id || tc.test_id || `TC-${index + 1}`,
+          Steps: toCellText(normalizeSteps(tc.steps || tc.procedure || tc.action_items)),
+          'Expected Result': tc.expected_result || tc.expected || tc.result || '',
+          Priority: tc.priority || tc.severity || 'Medium',
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        const columns = Object.keys(worksheetData[0]).map((key) => ({
+          wch: Math.max(key.length + 2, ...worksheetData.map((row) => String(row[key]).length), 14),
+        }));
+        worksheet['!cols'] = columns;
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'TestCases');
+        XLSX.writeFile(workbook, 'test_cases.xlsx');
+        return true;
+      }
+
+      async function handleDownloadExcel() {
+        if (!latestData.length) {
+          setError('No test cases available to export.');
+          return;
+        }
+
+        setError('');
+        const downloaded = downloadExcel(latestData);
+        if (downloaded) {
+          setStatus('Excel downloaded successfully');
+        } else {
+          setError('No test cases available to export.');
+        }
+      }
+
+      async function copyResults() {
+        if (!latestData.length) {
+          setError('No test cases available to copy.');
+          return;
+        }
 
         try {
-          const response = await fetch(`${API_BASE}/generate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: "Generate sample output" })
-          });
+          await navigator.clipboard.writeText(JSON.stringify(latestData, null, 2));
+          setError('');
+        } catch (_error) {
+          setError('Clipboard access was blocked by the browser.');
+        }
+      }
 
-          const data = await response.json();
+
+      async function importFromJira() {
+        const key = prompt('Enter Jira Issue Key (e.g. PROJ-123)');
+        if (!key) return;
+
+        setError('');
+
+        try {
+          const response = await fetch(`${API_URL}/api/v1/jira/${encodeURIComponent(key.trim())}`);
           if (!response.ok) {
-            throw new Error(data.detail || "Request failed");
+            const message = await response.text();
+            throw new Error(`Jira import failed (${response.status}): ${message || 'Unknown error'}`);
           }
 
-          setStatus(data.message);
-          await refreshUsage();
-        } catch (err) {
-          setError(err.message);
+          const data = await response.json();
+          storyInput.value = data.user_story || '';
+          updateCharCount();
+        } catch (error) {
+          const message = error.message || 'Failed to import Jira issue.';
+          setError(message);
+          alert(message);
+        }
+      }
+
+      async function pushToJira() {
+        const project = prompt('Enter Project Key (e.g. PROJ)');
+        if (!project) return;
+
+        if (!latestData.length) {
+          const message = 'No generated test cases to push.';
+          setError(message);
+          alert(message);
+          return;
+        }
+
+        setError('');
+        pushJiraBtn.disabled = true;
+
+        try {
+          const response = await fetch(`${API_URL}/api/v1/jira/push`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              project_key: project.trim(),
+              test_cases: latestData,
+            }),
+          });
+
+          if (!response.ok) {
+            const message = await response.text();
+            throw new Error(`Jira push failed (${response.status}): ${message || 'Unknown error'}`);
+          }
+
+          const data = await response.json();
+          alert(`Created ${data.created} Jira tickets`);
+        } catch (error) {
+          const message = error.message || 'Failed to push test cases to Jira.';
+          setError(message);
+          alert(message);
+        } finally {
+          pushJiraBtn.disabled = latestData.length === 0;
+        }
+      }
+
+      function saveCurrentToHistory() {
+        const prompt = storyInput.value.trim();
+        if (!prompt) {
+          setError('Please enter a user story before saving.');
+          return;
+        }
+
+        if (!latestData.length) {
+          setError('No test cases available to save.');
+          return;
+        }
+
+        saveHistoryEntry(prompt, latestData);
+        setError('');
+      }
+
+      async function handleUpgrade() {
+        const user = getStoredUser();
+        if (!user?.user_id || !user?.email) {
+          setError('Please login before upgrading.');
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_URL}/api/create-order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.user_id }),
+          });
+
+          if (!res.ok) {
+            const message = await res.text();
+            throw new Error(`Order creation failed (${res.status}): ${message || 'Unknown error'}`);
+          }
+
+          const order = await res.json();
+
+          const options = {
+            key: RAZORPAY_KEY,
+            amount: order.amount,
+            currency: 'INR',
+            name: 'TestPilot AI',
+            description: 'Pro Plan',
+            order_id: order.id,
+            prefill: {
+              email: user.email,
+            },
+            handler: async function () {
+              setStatus('Payment successful! Your plan will upgrade shortly.');
+              await syncUserPlan();
+            },
+          };
+
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        } catch (error) {
+          setError(error.message || 'Unable to start payment.');
+        }
+      }
+
+      storyInput.addEventListener('input', updateCharCount);
+      loginBtn.addEventListener('click', async () => {
+        try {
+          await loginOrSignup();
+        } catch (error) {
+          setError(error.message || 'Unable to login.');
         }
       });
+      generateBtn.addEventListener('click', handleGenerate);
+      downloadExcelBtn.addEventListener('click', handleDownloadExcel);
+      copyBtn.addEventListener('click', copyResults);
+      saveBtn.addEventListener('click', saveCurrentToHistory);
+      importJiraBtn.addEventListener('click', importFromJira);
+      pushJiraBtn.addEventListener('click', pushToJira);
+      upgradeBtn.addEventListener('click', handleUpgrade);
+      whatsappUpgradeBtn.addEventListener('click', handleUpgrade);
+      closeUpgradeBtn.addEventListener('click', () => setShowUpgrade(false));
+      upgradeModal.addEventListener('click', (event) => {
+        if (event.target === upgradeModal) setShowUpgrade(false);
+      });
 
-      refreshUsage();
+      updateCharCount();
+      renderHistory();
+      const storedUser = getStoredUser();
+      if (storedUser?.email) emailInput.value = storedUser.email;
+      updatePlanBadge(storedUser?.plan || 'free');
+      updateRemainingUsage(storedUser?.plan === 'pro' ? 'unlimited' : DAILY_LIMIT);
+      setLimitReached(false);
+      setActionButtonsDisabled(true);
+      setShowUpgrade(false);
+      syncUserPlan();
     </script>
   </body>
 </html>
