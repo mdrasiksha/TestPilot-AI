@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import os
-from urllib.parse import urlencode
 
 import razorpay
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
+
 from app.services.subscription_store import (
     get_user,
     get_user_plan,
@@ -18,7 +22,6 @@ router = APIRouter(tags=["subscription"])
 
 @router.post("/auth/login", summary="Login or signup with email")
 async def login(payload: dict):
-    print("Request received:", payload)
     user_id = str(payload.get("user_id") or "").strip()
     email = str(payload.get("email") or "").strip().lower()
 
@@ -53,6 +56,13 @@ async def create_payment_link(payload: dict):
         raise HTTPException(status_code=400, detail="Missing user_id")
 
     user = get_user(user_id)
+    if user and user.is_paid:
+        return {
+            "short_url": "",
+            "payment_link_url": "",
+            "message": "User already on pro plan",
+        }
+
     if user and user.email:
         email = user.email
     elif not user:
@@ -60,7 +70,6 @@ async def create_payment_link(payload: dict):
 
     razorpay_key_id = os.getenv("RAZORPAY_KEY_ID", "")
     razorpay_key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
-    frontend_url = os.getenv("FRONTEND_URL", "https://your-frontend-url")
 
     if not razorpay_key_id or not razorpay_key_secret:
         raise HTTPException(status_code=500, detail="Razorpay keys are not configured")
@@ -73,9 +82,10 @@ async def create_payment_link(payload: dict):
         "customer": {"email": email},
         "notify": {"email": True},
         "callback_method": "get",
-        "callback_url": f"{frontend_url.rstrip('/')}/payment-success",
+        "callback_url": "https://test-pilot-ai-lemon.vercel.app/payment-success",
         "notes": {
             "user_id": user_id,
+            "plan": "pro",
         },
     }
 
@@ -84,40 +94,56 @@ async def create_payment_link(payload: dict):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to create payment link: {exc}") from exc
 
-    payment_link_url = payment_link.get("short_url") or payment_link.get("payment_link")
-    if not payment_link_url:
-        raise HTTPException(status_code=500, detail="Payment link URL not found in Razorpay response")
+    short_url = payment_link.get("short_url")
+    if not short_url:
+        raise HTTPException(status_code=500, detail="Payment link short_url not found in Razorpay response")
 
     return {
-        "payment_link_url": payment_link_url,
+        "short_url": short_url,
+        "payment_link_url": short_url,
         "payment_link_id": payment_link.get("id"),
     }
 
 
-@router.get("/payment-success", summary="Handle Razorpay payment success callback")
-async def payment_success(payment_id: str = "", payment_link_id: str = "", status: str = ""):
-    if not payment_link_id:
-        raise HTTPException(status_code=400, detail="Missing payment_link_id")
+@router.post("/webhook", summary="Razorpay webhook")
+async def razorpay_webhook(request: Request):
+    webhook_secret = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
+    if not webhook_secret:
+        raise HTTPException(status_code=500, detail="Razorpay webhook secret is not configured")
 
-    if status == "paid":
-        razorpay_key_id = os.getenv("RAZORPAY_KEY_ID", "")
-        razorpay_key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
-        if not razorpay_key_id or not razorpay_key_secret:
-            raise HTTPException(status_code=500, detail="Razorpay keys are not configured")
+    raw_body = await request.body()
+    received_signature = request.headers.get("X-Razorpay-Signature", "")
 
-        client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
-        try:
-            payment_link = client.payment_link.fetch(payment_link_id)
-        except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Failed to verify payment link: {exc}") from exc
+    expected_signature = hmac.new(
+        webhook_secret.encode("utf-8"), raw_body, hashlib.sha256
+    ).hexdigest()
 
-        notes = payment_link.get("notes") or {}
+    if not received_signature or not hmac.compare_digest(expected_signature, received_signature):
+        print("Invalid Razorpay webhook signature")
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
+
+    try:
+        payload = json.loads(raw_body.decode("utf-8"))
+    except json.JSONDecodeError as exc:
+        print(f"Webhook JSON parse error: {exc}")
+        raise HTTPException(status_code=400, detail="Invalid webhook payload") from exc
+
+    event = payload.get("event")
+
+    if event == "payment_link.paid":
+        entity = ((payload.get("payload") or {}).get("payment_link") or {}).get("entity") or {}
+        notes = entity.get("notes") or {}
         user_id = str(notes.get("user_id") or "").strip()
-        if user_id:
-            set_user_pro(user_id)
-            return {"status": "ok", "message": "Payment verified and user upgraded", "user_id": user_id}
 
-    query_string = urlencode(
-        {"payment_id": payment_id, "payment_link_id": payment_link_id, "status": status}
-    )
-    return {"status": "pending", "message": "Payment not confirmed", "details": query_string}
+        if user_id:
+            user = get_user(user_id)
+            if not user:
+                upsert_user(user_id=user_id, email="")
+                user = get_user(user_id)
+
+            if user and not user.is_paid:
+                set_user_pro(user_id)
+        else:
+            print("payment_link.paid webhook missing user_id in notes")
+
+    return JSONResponse(status_code=200, content={"status": "ok"})
