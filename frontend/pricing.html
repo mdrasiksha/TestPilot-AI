@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TestPilot AI - Pricing</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --brand: #4f46e5;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 100%);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 40px auto;
+        padding: 0 16px;
+      }
+      .back-link {
+        color: var(--brand);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .card {
+        margin-top: 14px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(79, 70, 229, 0.08);
+        padding: 24px;
+      }
+      .price {
+        font-size: 2rem;
+        margin: 4px 0;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      ul {
+        padding-left: 20px;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--brand);
+        color: #fff;
+        font-weight: 600;
+      }
+      .btn-secondary {
+        background: #f3f4f6;
+        color: #111827;
+      }
+      #message {
+        margin-top: 12px;
+        color: #b91c1c;
+      }
+      #message.ok {
+        color: #065f46;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <a class="back-link" href="./index.html">← Back to app</a>
+      <section class="card">
+        <h1>TestPilot AI Pro</h1>
+        <p class="price">₹99 <span class="muted" style="font-size: 1rem">one-time</span></p>
+        <p class="muted">Unlock unlimited test-case generations and export support.</p>
+        <ul>
+          <li>Unlimited AI test case generation</li>
+          <li>Excel export</li>
+          <li>Faster workflow for QA teams</li>
+        </ul>
+        <div class="actions">
+          <button id="payBtn" class="btn-primary">Continue to Razorpay</button>
+          <button id="cancelBtn" class="btn-secondary">Maybe later</button>
+        </div>
+        <p id="message"></p>
+      </section>
+    </main>
+
+    <script>
+      const API_URL = 'https://testpilot-ai-ziwc.onrender.com';
+      const payBtn = document.getElementById('payBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const message = document.getElementById('message');
+
+      function getStoredUser() {
+        try {
+          const user = JSON.parse(localStorage.getItem('user') || 'null');
+          if (!user || !user.user_id) return null;
+          return user;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function setMessage(text, success = false) {
+        message.textContent = text;
+        message.classList.toggle('ok', success);
+      }
+
+      payBtn.addEventListener('click', async () => {
+        const user = getStoredUser();
+        if (!user?.user_id) {
+          setMessage('Please login on the main page before upgrading.');
+          return;
+        }
+
+        payBtn.disabled = true;
+        setMessage('Creating secure payment link...');
+
+        try {
+          const response = await fetch(`${API_URL}/api/create-payment-link`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: user.user_id,
+              email: user.email || '',
+            }),
+          });
+
+          if (!response.ok) {
+            const msg = await response.text();
+            throw new Error(`Payment link creation failed (${response.status}): ${msg || 'Unknown error'}`);
+          }
+
+          const data = await response.json();
+          if (!data?.payment_link_url) {
+            throw new Error('Payment link URL missing in response.');
+          }
+
+          setMessage('Redirecting to Razorpay...', true);
+          window.location.href = data.payment_link_url;
+        } catch (error) {
+          setMessage(error.message || 'Unable to start payment.');
+          payBtn.disabled = false;
+        }
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        window.location.href = './index.html';
+      });
+    </script>
+  </body>
+</html>

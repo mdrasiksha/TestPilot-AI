@@ -67,7 +67,7 @@ async def create_payment_link(payload: dict):
 
     client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
     options = {
-        "amount": 99900,
+        "amount": 9900,
         "currency": "INR",
         "description": "TestPilot AI Pro Plan",
         "customer": {"email": email},
