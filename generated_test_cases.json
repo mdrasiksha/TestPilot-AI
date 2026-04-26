@@ -1,457 +1,134 @@
 [
   {
-    "test_id": "TC_001",
-    "type": "Functional",
-    "priority": "P0",
-    "severity": "Major",
-    "scenario": "Submit requirement with all mandatory fields and valid values",
-    "preconditions": "Application is available; user has access to requirement submission interface/API",
+    "id": "TC001",
+    "title": "Generate complete core flow test cases from a valid requirement",
     "steps": [
-      "Open requirement submission page or API endpoint",
-      "Enter a complete valid requirement statement",
-      "Submit the request"
+      "Provide a clear requirement with actors, actions, and expected outcomes",
+      "Trigger test case generation",
+      "Review the generated output"
     ],
-    "test_data": "Requirement text: 'User can reset password via OTP and email link.'",
-    "expected_result": "Request is accepted and processed successfully with confirmation/200 response."
+    "expected_result": "System returns comprehensive test cases that map correctly to core business flows in the requirement.",
+    "priority": "High"
   },
   {
-    "test_id": "TC_002",
-    "type": "Functional",
-    "priority": "P0",
-    "severity": "Major",
-    "scenario": "Generate test cases covering happy path for provided requirement",
-    "preconditions": "Requirement is valid and parsing engine is operational",
+    "id": "TC002",
+    "title": "Prioritize critical business logic scenarios first",
     "steps": [
-      "Submit valid requirement",
-      "Trigger generation",
-      "Review generated list"
-    ],
-    "test_data": "Requirement with clear acceptance criteria",
-    "expected_result": "Generated output includes functional happy-path test cases relevant to requirement."
-  },
-  {
-    "test_id": "TC_003",
-    "type": "Functional",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Generate negative test cases for valid requirement",
-    "preconditions": "Generator supports negative-path derivation",
-    "steps": [
-      "Submit requirement",
+      "Submit a requirement containing both critical and non-critical behaviors",
       "Generate test cases",
-      "Filter by negative category"
+      "Inspect ordering of generated test cases"
     ],
-    "test_data": "Requirement containing input constraints",
-    "expected_result": "Output contains invalid-input and rejection-path test cases."
+    "expected_result": "Critical business logic cases are listed first and marked as High priority.",
+    "priority": "High"
   },
   {
-    "test_id": "TC_004",
-    "type": "Functional",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Generate edge and boundary value test cases",
-    "preconditions": "Requirement includes quantifiable limits",
+    "id": "TC003",
+    "title": "Include negative validation scenarios for invalid inputs",
     "steps": [
-      "Submit requirement with length/range limits",
-      "Generate tests",
-      "Inspect boundary coverage"
-    ],
-    "test_data": "'Username length 3-20 chars'",
-    "expected_result": "Output includes min-1, min, min+1, max-1, max, max+1 boundary cases."
-  },
-  {
-    "test_id": "TC_005",
-    "type": "Functional",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Classify each test case with severity and priority",
-    "preconditions": "Classification logic enabled",
-    "steps": [
-      "Generate tests from requirement",
-      "Review each test object"
-    ],
-    "test_data": "Any valid requirement",
-    "expected_result": "Every test has valid 'priority' (P0-P3) and 'severity' (Major/Minor)."
-  },
-  {
-    "test_id": "TC_006",
-    "type": "Functional",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Output adheres to strict JSON schema",
-    "preconditions": "JSON schema validator available",
-    "steps": [
+      "Submit a requirement with explicit input constraints",
       "Generate test cases",
-      "Validate output against required fields and types"
+      "Check for invalid input scenarios"
     ],
-    "test_data": "Requirement with multiple behaviors",
-    "expected_result": "Output is valid JSON array with required keys for each object."
+    "expected_result": "Output includes negative cases for invalid, missing, and malformed inputs relevant to the requirement.",
+    "priority": "High"
   },
   {
-    "test_id": "TC_007",
-    "type": "Negative",
-    "priority": "P0",
-    "severity": "Major",
-    "scenario": "Submit empty requirement",
-    "preconditions": "Submission endpoint reachable",
+    "id": "TC004",
+    "title": "Cover boundary values around defined limits",
     "steps": [
-      "Leave requirement input blank",
-      "Submit request"
+      "Submit a requirement that includes numeric or length boundaries",
+      "Generate test cases",
+      "Verify presence of min-1, min, max, and max+1 style coverage"
     ],
-    "test_data": "Empty string",
-    "expected_result": "System returns validation error indicating requirement is mandatory."
+    "expected_result": "Boundary and off-by-one cases are generated correctly for all explicit limits.",
+    "priority": "High"
   },
   {
-    "test_id": "TC_008",
-    "type": "Negative",
-    "priority": "P0",
-    "severity": "Major",
-    "scenario": "Submit requirement with only whitespace",
-    "preconditions": "Input trimming logic available",
+    "id": "TC005",
+    "title": "Handle duplicate request race to prevent duplicate outcomes",
     "steps": [
-      "Enter spaces/tabs/newlines only",
-      "Submit request"
+      "Trigger the same business action twice in rapid succession in the generated scenario context",
+      "Execute or simulate both requests concurrently",
+      "Observe resulting system state"
     ],
-    "test_data": "'   \n\t   '",
-    "expected_result": "Request is rejected with mandatory-field validation message."
+    "expected_result": "Only one valid outcome is committed; duplicate processing is rejected or idempotently handled.",
+    "priority": "High"
   },
   {
-    "test_id": "TC_009",
-    "type": "Negative",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Submit non-English or mixed-language requirement",
-    "preconditions": "Language support policy defined",
+    "id": "TC006",
+    "title": "Gracefully handle downstream service timeout during critical flow",
     "steps": [
-      "Enter mixed-language requirement",
-      "Submit and generate"
+      "Use a requirement that depends on an external service",
+      "Simulate service timeout during execution path",
+      "Validate generated resilience/failure test scenario"
     ],
-    "test_data": "English + Japanese sentence",
-    "expected_result": "System either processes correctly or returns clear unsupported-language error."
+    "expected_result": "Generated tests include timeout handling with user-safe failure behavior, retries, or rollback expectations.",
+    "priority": "High"
   },
   {
-    "test_id": "TC_010",
-    "type": "Negative",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Submit malformed payload to API",
-    "preconditions": "API accepts JSON request body",
+    "id": "TC007",
+    "title": "Reject empty or whitespace-only requirement input",
     "steps": [
-      "Send malformed JSON",
-      "Observe API response"
+      "Submit an empty requirement input",
+      "Submit a whitespace-only requirement input",
+      "Attempt to generate test cases"
     ],
-    "test_data": "Broken JSON syntax",
-    "expected_result": "API returns 400 with parse/validation error and no crash."
+    "expected_result": "System rejects both inputs with clear validation feedback and no test case generation.",
+    "priority": "High"
   },
   {
-    "test_id": "TC_011",
-    "type": "Negative",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Submit unsupported data type for requirement",
-    "preconditions": "API contract enforces string type",
+    "id": "TC008",
+    "title": "Generate edge cases for special characters and Unicode content",
     "steps": [
-      "Send number/array/object instead of string",
-      "Submit request"
+      "Provide a requirement containing symbols, accented characters, and emoji",
+      "Generate test cases",
+      "Inspect edge-case coverage"
     ],
-    "test_data": "requirement: 12345",
-    "expected_result": "Validation error returned specifying expected string input."
+    "expected_result": "Output preserves character integrity and includes realistic edge scenarios for special/unicode input handling.",
+    "priority": "Medium"
   },
   {
-    "test_id": "TC_012",
-    "type": "Edge",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Requirement at minimum allowed character length",
-    "preconditions": "Minimum length constraint configured",
+    "id": "TC009",
+    "title": "Detect and address contradictory requirement statements",
     "steps": [
-      "Enter requirement exactly min length",
-      "Submit request"
+      "Provide a requirement with conflicting rules",
+      "Generate test cases",
+      "Review conflict-related scenarios"
     ],
-    "test_data": "String length = min threshold",
-    "expected_result": "Request accepted and processed."
+    "expected_result": "Generated tests explicitly cover contradiction handling and expected conflict resolution behavior.",
+    "priority": "Medium"
   },
   {
-    "test_id": "TC_013",
-    "type": "Boundary",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Requirement one character below minimum length",
-    "preconditions": "Minimum length constraint configured",
+    "id": "TC010",
+    "title": "Ensure no duplicate test cases in output",
     "steps": [
-      "Enter requirement length min-1",
-      "Submit"
+      "Submit a requirement containing repeated acceptance criteria",
+      "Generate test cases",
+      "Compare case titles and intents for duplication"
     ],
-    "test_data": "String length = min-1",
-    "expected_result": "Request rejected with min-length validation error."
+    "expected_result": "Output contains unique, non-duplicated test cases only.",
+    "priority": "Medium"
   },
   {
-    "test_id": "TC_014",
-    "type": "Boundary",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Requirement at maximum allowed character length",
-    "preconditions": "Maximum length constraint configured",
+    "id": "TC011",
+    "title": "Maintain stable output format under large requirement input",
     "steps": [
-      "Enter requirement exactly max length",
-      "Submit"
+      "Provide a very large multi-section requirement near supported maximum size",
+      "Generate test cases",
+      "Validate schema and completeness"
     ],
-    "test_data": "String length = max threshold",
-    "expected_result": "Request accepted without truncation or corruption."
+    "expected_result": "System returns valid, well-structured test cases without truncation-related corruption.",
+    "priority": "Medium"
   },
   {
-    "test_id": "TC_015",
-    "type": "Boundary",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Requirement one character above maximum length",
-    "preconditions": "Maximum length constraint configured",
+    "id": "TC012",
+    "title": "Recover safely when user interrupts generation session",
     "steps": [
-      "Enter requirement length max+1",
-      "Submit"
+      "Start generation for a complex requirement",
+      "Simulate user refresh/navigation interruption",
+      "Resume and verify resulting output/state"
     ],
-    "test_data": "String length = max+1",
-    "expected_result": "Validation error returned; system remains stable."
-  },
-  {
-    "test_id": "TC_016",
-    "type": "Edge",
-    "priority": "P2",
-    "severity": "Minor",
-    "scenario": "Requirement with special characters and punctuation",
-    "preconditions": "Input parser supports punctuation",
-    "steps": [
-      "Enter requirement containing symbols",
-      "Generate tests"
-    ],
-    "test_data": "@#$%^&*() with valid sentence",
-    "expected_result": "Parser handles symbols safely; meaningful tests generated or clear warning shown."
-  },
-  {
-    "test_id": "TC_017",
-    "type": "Narrow",
-    "priority": "P2",
-    "severity": "Minor",
-    "scenario": "Requirement with ambiguous wording",
-    "preconditions": "Ambiguity handling behavior defined",
-    "steps": [
-      "Submit vague requirement",
-      "Generate output"
-    ],
-    "test_data": "'System should be fast and user-friendly'",
-    "expected_result": "Output includes assumptions or generic cases without failing silently."
-  },
-  {
-    "test_id": "TC_018",
-    "type": "Narrow",
-    "priority": "P2",
-    "severity": "Minor",
-    "scenario": "Requirement with contradictory constraints",
-    "preconditions": "Conflict detection logic enabled",
-    "steps": [
-      "Submit conflicting requirement",
-      "Run generation"
-    ],
-    "test_data": "'Password length must be exactly 8 and at least 12'",
-    "expected_result": "System flags contradiction or produces explicit conflict note."
-  },
-  {
-    "test_id": "TC_019",
-    "type": "Error Handling",
-    "priority": "P0",
-    "severity": "Major",
-    "scenario": "Internal processing failure while generating test cases",
-    "preconditions": "Fault injection or mock failure enabled",
-    "steps": [
-      "Trigger generation with induced backend exception",
-      "Observe response"
-    ],
-    "test_data": "Valid requirement",
-    "expected_result": "Graceful error message/5xx returned with no sensitive stack trace leak."
-  },
-  {
-    "test_id": "TC_020",
-    "type": "Error Handling",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Timeout during generation",
-    "preconditions": "Timeout threshold configured",
-    "steps": [
-      "Submit very complex requirement",
-      "Force processing beyond timeout"
-    ],
-    "test_data": "Long multi-module requirement text",
-    "expected_result": "Request times out with controlled message and retry guidance."
-  },
-  {
-    "test_id": "TC_021",
-    "type": "Security & Validation",
-    "priority": "P0",
-    "severity": "Major",
-    "scenario": "SQL injection payload in requirement field",
-    "preconditions": "Backend stores/logs user input",
-    "steps": [
-      "Submit injection payload",
-      "Trigger generation"
-    ],
-    "test_data": "' OR 1=1; DROP TABLE users; --",
-    "expected_result": "Input is treated as plain text; no query manipulation or data impact."
-  },
-  {
-    "test_id": "TC_022",
-    "type": "Security & Validation",
-    "priority": "P0",
-    "severity": "Major",
-    "scenario": "XSS payload in requirement field",
-    "preconditions": "Output rendered in UI",
-    "steps": [
-      "Submit script payload",
-      "View requirement and generated output in UI"
-    ],
-    "test_data": "<script>alert('xss')</script>",
-    "expected_result": "Payload is escaped/sanitized; script never executes."
-  },
-  {
-    "test_id": "TC_023",
-    "type": "Security & Validation",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Command injection style payload",
-    "preconditions": "System may call shell or external tools",
-    "steps": [
-      "Submit command-like payload",
-      "Monitor execution/logs"
-    ],
-    "test_data": "`$(rm -rf /)`",
-    "expected_result": "Input is neutralized; no command execution occurs."
-  },
-  {
-    "test_id": "TC_024",
-    "type": "Security & Validation",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Unauthorized API access",
-    "preconditions": "API requires authentication",
-    "steps": [
-      "Call generation endpoint without token",
-      "Repeat with expired/invalid token"
-    ],
-    "test_data": "Missing and invalid JWT",
-    "expected_result": "401/403 returned; no data disclosed."
-  },
-  {
-    "test_id": "TC_025",
-    "type": "Security & Validation",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Excessive request rate (rate limiting)",
-    "preconditions": "Rate limit policy configured",
-    "steps": [
-      "Send burst of generation requests above threshold",
-      "Observe responses"
-    ],
-    "test_data": "100+ requests in short interval",
-    "expected_result": "429 responses after threshold; service remains available."
-  },
-  {
-    "test_id": "TC_026",
-    "type": "Performance",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Generation latency for normal-sized requirement",
-    "preconditions": "Performance baseline defined",
-    "steps": [
-      "Submit average requirement",
-      "Measure end-to-end response time"
-    ],
-    "test_data": "~300 character requirement",
-    "expected_result": "Response time meets SLA for standard workload."
-  },
-  {
-    "test_id": "TC_027",
-    "type": "Performance",
-    "priority": "P1",
-    "severity": "Major",
-    "scenario": "Generation under concurrent users",
-    "preconditions": "Load test environment available",
-    "steps": [
-      "Simulate concurrent users submitting requirements",
-      "Track error rate and latency"
-    ],
-    "test_data": "50-200 concurrent virtual users",
-    "expected_result": "System remains stable within acceptable latency and error thresholds."
-  },
-  {
-    "test_id": "TC_028",
-    "type": "Performance",
-    "priority": "P2",
-    "severity": "Minor",
-    "scenario": "Memory usage with very large requirement text",
-    "preconditions": "Monitoring enabled",
-    "steps": [
-      "Submit near-maximum or oversized requirement repeatedly",
-      "Monitor memory/CPU"
-    ],
-    "test_data": "Large multi-page requirement",
-    "expected_result": "No memory leak; resources return to baseline after requests complete."
-  },
-  {
-    "test_id": "TC_029",
-    "type": "Edge",
-    "priority": "P2",
-    "severity": "Minor",
-    "scenario": "Requirement containing unicode and emoji",
-    "preconditions": "UTF-8 handling enabled",
-    "steps": [
-      "Submit multilingual text with emoji",
-      "Generate tests"
-    ],
-    "test_data": "'ユーザーはログインできる 🔐'",
-    "expected_result": "Text is preserved correctly; generation succeeds or returns clear limitation message."
-  },
-  {
-    "test_id": "TC_030",
-    "type": "Corner",
-    "priority": "P2",
-    "severity": "Minor",
-    "scenario": "Duplicate scenario prevention in output",
-    "preconditions": "Deduplication logic exists",
-    "steps": [
-      "Submit requirement with repeated statements",
-      "Generate output",
-      "Check uniqueness"
-    ],
-    "test_data": "Repeated acceptance criteria lines",
-    "expected_result": "No duplicate test cases in final JSON output."
-  },
-  {
-    "test_id": "TC_031",
-    "type": "Corner",
-    "priority": "P3",
-    "severity": "Minor",
-    "scenario": "Unexpected user behavior: refresh/close during generation",
-    "preconditions": "UI-based generation flow",
-    "steps": [
-      "Start generation",
-      "Refresh or close tab mid-process",
-      "Reopen and check state"
-    ],
-    "test_data": "Any valid requirement",
-    "expected_result": "System recovers gracefully; no corrupted records or stuck requests."
-  },
-  {
-    "test_id": "TC_032",
-    "type": "Error Handling",
-    "priority": "P2",
-    "severity": "Minor",
-    "scenario": "Downstream dependency unavailable",
-    "preconditions": "External NLP/service dependency used",
-    "steps": [
-      "Simulate dependency outage",
-      "Submit requirement",
-      "Observe response and retries"
-    ],
-    "test_data": "Valid requirement",
-    "expected_result": "System returns controlled failure with retry/backoff, no crash, and actionable error."
+    "expected_result": "System recovers gracefully without partial corruption, and allows safe retry/resume.",
+    "priority": "Low"
   }
 ]
