@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 class UserRecord:
     user_id: str
     email: str
+    is_paid: bool = False
     plan: str = "free"
 
 
@@ -36,6 +37,8 @@ def get_user_plan(user_id: str) -> str:
     user = get_user(user_id)
     if not user:
         return "free"
+    if user.is_paid:
+        return "pro"
     return user.plan
 
 
@@ -48,7 +51,12 @@ def set_user_plan(user_id: str, plan: str) -> UserRecord | None:
 
 
 def set_user_pro(user_id: str) -> UserRecord | None:
-    return set_user_plan(user_id=user_id, plan="pro")
+    user = get_user(user_id)
+    if not user:
+        return None
+    user.is_paid = True
+    user.plan = "pro"
+    return user
 
 
 def user_to_dict(user: UserRecord) -> dict[str, str]:
