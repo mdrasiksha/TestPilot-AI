@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Success - TestPilot AI</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      .wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 28px;
+        text-align: center;
+        max-width: 460px;
+        width: 100%;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      }
+      .title {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+      .subtitle {
+        margin: 10px 0 0;
+        color: #475569;
+      }
+      .btn {
+        margin-top: 20px;
+        border: 0;
+        background: #2563eb;
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <h1 id="title" class="title">Payment Status</h1>
+        <p id="subtitle" class="subtitle"></p>
+        <button class="btn" onclick="window.location.href='./index.html'">Go to Dashboard</button>
+      </section>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const status = (params.get('razorpay_payment_link_status') || '').toLowerCase();
+
+      const title = document.getElementById('title');
+      const subtitle = document.getElementById('subtitle');
+
+      if (status === 'paid') {
+        title.textContent = '✅ Payment Successful';
+        subtitle.textContent = '🚀 Unlimited access unlocked';
+      } else {
+        title.textContent = 'Payment Pending';
+        subtitle.textContent = 'Your payment is being confirmed. Pro access will unlock after webhook verification.';
+      }
+    </script>
+  </body>
+</html>
