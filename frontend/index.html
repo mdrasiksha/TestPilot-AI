@@ -669,12 +669,10 @@
       </div>
     </div>
 
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script type="module">
       const API_URL = 'https://testpilot-ai-ziwc.onrender.com';
       console.log('API URL:', API_URL);
-      const RAZORPAY_KEY = 'YOUR_KEY';
       const HISTORY_KEY = 'testpilot-history';
       const MAX_HISTORY = 20;
 
@@ -1233,45 +1231,72 @@
 
       async function handleUpgrade() {
         const user = getStoredUser();
-        if (!user?.user_id || !user?.email) {
+        if (!user?.user_id) {
           setError('Please login before upgrading.');
           return;
         }
 
         try {
-          const res = await fetch(`${API_URL}/api/create-order`, {
+          const res = await fetch(`${API_URL}/api/create-payment-link`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.user_id }),
+            body: JSON.stringify({
+              user_id: user.user_id,
+              email: user.email || '',
+            }),
           });
 
           if (!res.ok) {
             const message = await res.text();
-            throw new Error(`Order creation failed (${res.status}): ${message || 'Unknown error'}`);
+            throw new Error(`Payment link creation failed (${res.status}): ${message || 'Unknown error'}`);
           }
 
-          const order = await res.json();
-
-          const options = {
-            key: RAZORPAY_KEY,
-            amount: order.amount,
-            currency: 'INR',
-            name: 'TestPilot AI',
-            description: 'Pro Plan',
-            order_id: order.id,
-            prefill: {
-              email: user.email,
-            },
-            handler: async function () {
-              setStatus('Payment successful! Your plan will upgrade shortly.');
-              await syncUserPlan();
-            },
-          };
-
-          const rzp = new window.Razorpay(options);
-          rzp.open();
+          const data = await res.json();
+          const paymentLinkUrl = data?.payment_link_url;
+          if (!paymentLinkUrl) {
+            throw new Error('Payment link URL missing in response.');
+          }
+          window.location.href = paymentLinkUrl;
         } catch (error) {
+          console.error('Upgrade failed:', error);
           setError(error.message || 'Unable to start payment.');
+          alert(error.message || 'Unable to start payment.');
+        }
+      }
+
+      async function handlePaymentSuccessCallback() {
+        const params = new URLSearchParams(window.location.search);
+        const payment_id = params.get('razorpay_payment_id') || params.get('payment_id') || '';
+        const payment_link_id = params.get('razorpay_payment_link_id') || params.get('payment_link_id') || '';
+        const status = params.get('razorpay_payment_link_status') || params.get('status') || '';
+
+        if (!payment_link_id || !status) return;
+
+        try {
+          const response = await fetch(
+            `${API_URL}/api/payment-success?payment_id=${encodeURIComponent(payment_id)}&payment_link_id=${encodeURIComponent(payment_link_id)}&status=${encodeURIComponent(status)}`,
+          );
+
+          if (!response.ok) {
+            const message = await response.text();
+            throw new Error(`Payment verification failed (${response.status}): ${message || 'Unknown error'}`);
+          }
+
+          const payload = await response.json();
+          if (payload?.status === 'ok') {
+            const user = getStoredUser();
+            if (user) {
+              const upgradedUser = { ...user, plan: 'pro', is_paid: true };
+              localStorage.setItem('user', JSON.stringify(upgradedUser));
+            }
+            updatePlanBadge('pro');
+            setRemaining('unlimited');
+            setStatus('Payment successful. Pro plan activated.');
+            setError('');
+          }
+        } catch (error) {
+          console.error('Payment success callback failed:', error);
+          setError(error.message || 'Unable to verify payment status.');
         }
       }
 
@@ -1306,6 +1331,7 @@
       setActionButtonsDisabled(true);
       setShowUpgrade(false);
       syncUserPlan();
+      handlePaymentSuccessCallback();
     </script>
   </body>
 </html>
