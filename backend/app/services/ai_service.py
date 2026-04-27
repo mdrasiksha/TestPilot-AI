@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Any
 
 from openai import OpenAI
@@ -55,18 +56,66 @@ def _validate_case_structure(test_case: dict[str, Any]) -> bool:
         return False
 
     steps = test_case.get("steps")
-    if isinstance(steps, list):
-        if not steps:
-            return False
-        if not all(_is_non_empty_string(step) for step in steps):
-            return False
-    elif not _is_non_empty_string(steps):
+    if not isinstance(steps, list):
+        return False
+    if len(steps) < 3:
+        return False
+    if not all(_is_non_empty_string(step) for step in steps):
         return False
 
     if not _is_non_empty_string(test_case.get("expected_result")):
         return False
 
     return True
+
+
+def _sanitize_step(step: Any) -> str:
+    text = str(step or "").strip()
+    if not text:
+        return ""
+
+    text = re.sub(r"^\s*[•\-\*]+\s*", "", text)
+    text = re.sub(r"^\s*step\s*\d+\s*[:.)-]?\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"^\s*\d+\s*[:.)-]\s*", "", text)
+    return text.strip()
+
+
+def _normalize_steps(steps: Any) -> list[str]:
+    if isinstance(steps, list):
+        candidates = steps
+    elif isinstance(steps, str):
+        candidates = re.split(r"(?:\r?\n|;)", steps)
+    else:
+        return []
+
+    normalized: list[str] = []
+    for raw_step in candidates:
+        cleaned = _sanitize_step(raw_step)
+        if cleaned:
+            normalized.append(cleaned)
+
+    return normalized
+
+
+def _normalize_case(case: dict[str, Any], index: int) -> dict[str, Any]:
+    title = str(case.get("title") or "").strip()
+    if not title or title.lower() == "untitled test case":
+        title = f"Generated test case {index + 1}"
+
+    expected_result = str(
+        case.get("expected_result") or case.get("expected") or case.get("result") or ""
+    ).strip()
+    priority = str(case.get("priority") or "Medium").strip().title()
+    if priority not in VALID_PRIORITIES:
+        priority = "Medium"
+
+    return {
+        "id": str(case.get("id") or f"TC{index + 1:03d}").strip(),
+        "title": title,
+        "steps": _normalize_steps(case.get("steps")),
+        "expected_result": expected_result,
+        "priority": priority,
+    }
 
 
 def _deduplicate_cases(test_cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -89,7 +138,8 @@ def _deduplicate_cases(test_cases: list[dict[str, Any]]) -> list[dict[str, Any]]
 
 
 def _normalize_and_validate_cases(test_cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    valid_cases = [case for case in test_cases if _validate_case_structure(case)]
+    normalized_cases = [_normalize_case(case, i) for i, case in enumerate(test_cases)]
+    valid_cases = [case for case in normalized_cases if _validate_case_structure(case)]
     deduplicated_cases = _deduplicate_cases(valid_cases)
 
     if len(deduplicated_cases) < 5:
@@ -119,8 +169,9 @@ Return ONLY valid JSON in this format:
     "id": "TC001",
     "title": "string",
     "steps": [
-      "• Step 1: ...",
-      "• Step 2: ..."
+      "Navigate to the page",
+      "Enter valid details",
+      "Verify successful outcome"
     ],
     "expected_result": "string",
     "priority": "High | Medium | Low"
@@ -134,7 +185,9 @@ Rules:
 - Keep steps clear, sequential, and action-oriented (Click, Navigate, Select, Enter, Verify)
 - Put exactly one action per step; do not merge multiple actions in one step
 - Keep every detail from the source requirement; do not change meaning
-- Format each step as: "• Step N: <action>"
+- Return "steps" as an array of strings only (not a single string)
+- Do not include bullets, numbering, or prefixes like "Step 1"
+- Ensure each test case has at least 3 steps
 - Include positive, negative, and edge cases
 - No explanation text
 - No markdown
