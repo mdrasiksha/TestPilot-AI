@@ -865,12 +865,21 @@
       }
 
       function normalizeSteps(steps) {
-        if (Array.isArray(steps)) return steps;
-        if (typeof steps !== 'string') return [];
-        return steps
-          .split(/\n|;|\d+\./)
-          .map((step) => step.trim())
-          .filter(Boolean);
+        const sanitizeStep = (step) =>
+          String(step || '')
+            .trim()
+            .replace(/^[•\-*]+\s*/g, '')
+            .replace(/^step\s*\d+\s*[:.)-]?\s*/i, '')
+            .replace(/^\d+\s*[:.)-]\s*/g, '')
+            .trim();
+
+        const toList = Array.isArray(steps)
+          ? steps
+          : typeof steps === 'string'
+            ? steps.split(/\r?\n|;/)
+            : [];
+
+        return toList.map((step) => sanitizeStep(step)).filter(Boolean);
       }
 
       function priorityClass(priority) {
