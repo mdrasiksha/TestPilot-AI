@@ -10,6 +10,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 VALID_PRIORITIES = {"High", "Medium", "Low"}
 REQUIRED_FIELDS = {
     "id",
+    "title",
     "steps",
     "expected_result",
     "priority",
@@ -44,11 +45,22 @@ def _validate_case_structure(test_case: dict[str, Any]) -> bool:
     if not _is_non_empty_string(test_case.get("id")):
         return False
 
+    title = test_case.get("title")
+    if not _is_non_empty_string(title):
+        return False
+    if str(title).strip().lower() == "untitled test case":
+        return False
+
     if test_case.get("priority") not in VALID_PRIORITIES:
         return False
 
     steps = test_case.get("steps")
-    if not _is_non_empty_string(steps):
+    if isinstance(steps, list):
+        if not steps:
+            return False
+        if not all(_is_non_empty_string(step) for step in steps):
+            return False
+    elif not _is_non_empty_string(steps):
         return False
 
     if not _is_non_empty_string(test_case.get("expected_result")):
@@ -105,7 +117,11 @@ Return ONLY valid JSON in this format:
 [
   {{
     "id": "TC001",
-    "steps": "string",
+    "title": "string",
+    "steps": [
+      "• Step 1: ...",
+      "• Step 2: ..."
+    ],
     "expected_result": "string",
     "priority": "High | Medium | Low"
   }}
@@ -113,6 +129,12 @@ Return ONLY valid JSON in this format:
 
 Rules:
 - Generate at least 5 test cases
+- Use this exact structure for each case: ID | TITLE | STEPS | EXPECTED | PRIORITY
+- Title must be meaningful and descriptive; never use "Untitled test case"
+- Keep steps clear, sequential, and action-oriented (Click, Navigate, Select, Enter, Verify)
+- Put exactly one action per step; do not merge multiple actions in one step
+- Keep every detail from the source requirement; do not change meaning
+- Format each step as: "• Step N: <action>"
 - Include positive, negative, and edge cases
 - No explanation text
 - No markdown

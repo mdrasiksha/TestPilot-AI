@@ -855,7 +855,7 @@
 
       function isValidStructuredCase(testCase) {
         if (!testCase || typeof testCase !== 'object') return false;
-        const required = ['id', 'steps', 'expected_result', 'priority'];
+        const required = ['id', 'title', 'steps', 'expected_result', 'priority'];
         return required.every((key) => Object.hasOwn(testCase, key));
       }
 
