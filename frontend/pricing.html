@@ -6,161 +6,111 @@
     <title>TestPilot AI - Pricing</title>
     <style>
       :root {
-        color-scheme: light;
-        --bg: #f3f4f6;
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --background: #f8fafc;
         --card: #ffffff;
-        --text: #111827;
-        --muted: #6b7280;
-        --border: #e5e7eb;
-        --brand: #4f46e5;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.08);
       }
+      * { box-sizing: border-box; }
       body {
         margin: 0;
-        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 100%);
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
         color: var(--text);
+        background: radial-gradient(circle at top, #eef4ff 0%, var(--background) 40%);
       }
-      .wrap {
-        max-width: 760px;
-        margin: 40px auto;
-        padding: 0 16px;
-      }
-      .back-link {
-        color: var(--brand);
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .card {
-        margin-top: 14px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(79, 70, 229, 0.08);
-        padding: 24px;
-      }
-      .price {
-        font-size: 2rem;
-        margin: 4px 0;
-      }
-      .muted {
-        color: var(--muted);
-      }
-      ul {
-        padding-left: 20px;
-      }
-      .actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 16px;
-      }
-      button {
-        border: 0;
-        border-radius: 10px;
-        padding: 10px 14px;
-        font-size: 0.95rem;
-        cursor: pointer;
-      }
-      .btn-primary {
-        background: var(--brand);
-        color: #fff;
-        font-weight: 600;
-      }
-      .btn-secondary {
-        background: #f3f4f6;
-        color: #111827;
-      }
-      #message {
-        margin-top: 12px;
-        color: #b91c1c;
-      }
-      #message.ok {
-        color: #065f46;
-      }
+      .shell { width: min(1080px, calc(100% - 40px)); margin: 28px auto 48px; }
+      .topbar { display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.72); border:1px solid #e2e8f080; backdrop-filter: blur(8px); border-radius:16px; padding:14px 18px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05); }
+      .topbar a { color: var(--primary); text-decoration: none; font-weight: 600; }
+      .hero { text-align:center; margin: 34px 0 28px; }
+      .hero h1 { margin:0; font-size: clamp(2rem, 4.5vw, 2.8rem); letter-spacing:-0.03em; }
+      .hero p { margin: 12px 0 0; color: var(--muted); font-size: 1.04rem; }
+      .grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+      .card { background:var(--card); border:1px solid var(--border); border-radius:18px; box-shadow: var(--shadow-soft); padding:24px; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+      .card:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12); }
+      .pro { border-color: #93c5fd; box-shadow: 0 0 0 1px rgba(37,99,235,.2), 0 20px 40px rgba(37,99,235,.14); }
+      .badge { display:inline-block; background:#dbeafe; color:#1e40af; border-radius:999px; padding:6px 10px; font-size:.75rem; font-weight:700; margin-bottom:10px; }
+      h2 { margin: 0 0 6px; font-size: 1.35rem; }
+      .price { font-size: 2rem; font-weight: 800; margin: 8px 0 14px; }
+      ul { margin: 0; padding-left: 18px; color: #1e293b; line-height: 1.7; }
+      .btn { margin-top: 18px; width: 100%; border-radius: 10px; border:1px solid var(--border); background: #fff; color:#1e293b; font: inherit; font-weight: 600; padding: 11px 14px; cursor:pointer; }
+      .btn:hover { background:#f8fafc; }
+      .btn-primary { background:var(--primary); border-color: var(--primary); color:#fff; box-shadow: 0 8px 18px rgba(37,99,235,.25); }
+      .btn-primary:hover { background:var(--primary-hover); border-color:var(--primary-hover); }
+      .sections { margin-top: 30px; display:grid; gap:16px; }
+      .section { background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow: var(--shadow-soft); padding:22px; }
+      .cta { text-align:center; }
+      .cta .actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+      .cta .actions a { text-decoration:none; }
+      @media (max-width: 860px){ .grid { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body>
-    <main class="wrap">
-      <a class="back-link" href="./index.html">← Back to app</a>
-      <section class="card">
-        <h1>TestPilot AI Pro</h1>
-        <p class="price">₹99 <span class="muted" style="font-size: 1rem">one-time</span></p>
-        <p class="muted">Unlock unlimited test-case generations and export support.</p>
-        <ul>
-          <li>Unlimited AI test case generation</li>
-          <li>Excel export</li>
-          <li>Faster workflow for QA teams</li>
-        </ul>
-        <div class="actions">
-          <button id="payBtn" class="btn-primary">Continue to Razorpay</button>
-          <button id="cancelBtn" class="btn-secondary">Maybe later</button>
-        </div>
-        <p id="message"></p>
+    <main class="shell">
+      <header class="topbar">
+        <strong>TestPilot AI</strong>
+        <a href="./index.html">← Back to app</a>
+      </header>
+      <section class="hero">
+        <h1>Simple, Transparent Pricing</h1>
+        <p>Start free. Upgrade when you need unlimited AI-generated test cases.</p>
       </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Free Plan</h2>
+          <div class="price">₹0/month</div>
+          <ul>
+            <li>5 Test Case Generations</li>
+            <li>Basic Functional Scenarios</li>
+            <li>Limited Edge Cases</li>
+          </ul>
+          <a href="./index.html"><button class="btn">Start Free</button></a>
+        </article>
+
+        <article class="card pro">
+          <span class="badge">MOST POPULAR</span>
+          <h2>Pro Plan</h2>
+          <div class="price">₹99/month</div>
+          <ul>
+            <li>Unlimited Test Case Generation</li>
+            <li>Edge + Negative + Boundary Cases</li>
+            <li>Structured JSON Output</li>
+            <li>Automation-ready test cases</li>
+            <li>Faster generation</li>
+          </ul>
+          <a href="./index.html?upgrade=1"><button class="btn btn-primary">🚀 Upgrade to Pro</button></a>
+        </article>
+      </section>
+
+      <div class="sections">
+        <section class="section">
+          <h3>Why Upgrade?</h3>
+          <ul>
+            <li>Save hours of manual testing effort</li>
+            <li>Generate edge cases instantly</li>
+            <li>Improve QA coverage</li>
+            <li>Reduce bugs before production</li>
+          </ul>
+        </section>
+        <section class="section">
+          <h3>Trust & Flexibility</h3>
+          <ul>
+            <li>Secure payments via Razorpay</li>
+            <li>Cancel anytime</li>
+          </ul>
+        </section>
+        <section class="section cta">
+          <h3>Start Free → Upgrade Anytime</h3>
+          <div class="actions">
+            <a href="./index.html"><button class="btn">Start Free</button></a>
+            <a href="./index.html?upgrade=1"><button class="btn btn-primary">Upgrade to Pro</button></a>
+          </div>
+        </section>
+      </div>
     </main>
-
-    <script>
-      const API_URL = 'https://testpilot-ai-ziwc.onrender.com';
-      const payBtn = document.getElementById('payBtn');
-      const cancelBtn = document.getElementById('cancelBtn');
-      const message = document.getElementById('message');
-
-      function getStoredUser() {
-        try {
-          const user = JSON.parse(localStorage.getItem('user') || 'null');
-          if (!user || !user.user_id) return null;
-          return user;
-        } catch (_error) {
-          return null;
-        }
-      }
-
-      function setMessage(text, success = false) {
-        message.textContent = text;
-        message.classList.toggle('ok', success);
-      }
-
-      payBtn.addEventListener('click', async () => {
-        const user = getStoredUser();
-        if (!user?.user_id) {
-          setMessage('Please login on the main page before upgrading.');
-          return;
-        }
-
-        payBtn.disabled = true;
-        setMessage('Creating secure payment link...');
-
-        try {
-          const response = await fetch(`${API_URL}/api/create-payment-link`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: user.user_id,
-              email: user.email || '',
-            }),
-          });
-
-          if (!response.ok) {
-            const msg = await response.text();
-            throw new Error(`Payment link creation failed (${response.status}): ${msg || 'Unknown error'}`);
-          }
-
-          const data = await response.json();
-          if (!data?.payment_link_url) {
-            throw new Error('Payment link URL missing in response.');
-          }
-
-          setMessage('Redirecting to Razorpay...', true);
-          window.location.href = data.payment_link_url;
-        } catch (error) {
-          setMessage(error.message || 'Unable to start payment.');
-          payBtn.disabled = false;
-        }
-      });
-
-      cancelBtn.addEventListener('click', () => {
-        window.location.href = './index.html';
-      });
-    </script>
   </body>
 </html>
