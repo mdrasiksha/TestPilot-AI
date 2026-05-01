@@ -595,10 +595,10 @@
         <h1 class="logo">TestPilot AI</h1>
         <div class="topbar-right">
           <span class="tagline">AI QA Generator</span>
-          <a class="nav-link" href="/pricing">Pricing</a>
+          <a class="nav-link" href="./pricing.html">Pricing</a>
           <input id="emailInput" class="auth-email" type="email" placeholder="Enter email" />
           <button id="loginBtn" class="btn">Login / Signup</button>
-          <span id="planPill" class="plan-pill" title="View Pricing Plans" onclick="window.location.href='/pricing'">PRICING</span>
+          <span id="planPill" class="plan-pill">Free</span>
         </div>
       </header>
 
@@ -738,7 +738,7 @@
 
       function updatePlanBadge(plan = 'free') {
         const normalized = plan === 'pro' ? 'pro' : 'free';
-        planPill.textContent = normalized === 'pro' ? 'PRO' : 'PRICING';
+        planPill.textContent = normalized.toUpperCase();
         planPill.classList.toggle('pro', normalized === 'pro');
       }
 
