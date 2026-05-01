@@ -595,7 +595,7 @@
         <h1 class="logo">TestPilot AI</h1>
         <div class="topbar-right">
           <span class="tagline">AI QA Generator</span>
-          <a class="nav-link" href="./pricing.html">Pricing</a>
+          <a class="nav-link" href="/pricing">Pricing</a>
           <input id="emailInput" class="auth-email" type="email" placeholder="Enter email" />
           <button id="loginBtn" class="btn">Login / Signup</button>
           <span id="planPill" class="plan-pill">Free</span>
@@ -1301,7 +1301,9 @@
       saveBtn.addEventListener('click', saveCurrentToHistory);
       importJiraBtn.addEventListener('click', importFromJira);
       pushJiraBtn.addEventListener('click', pushToJira);
-      upgradeBtn.addEventListener('click', handleUpgrade);
+      upgradeBtn.addEventListener('click', () => {
+        window.location.href = '/pricing';
+      });
       whatsappUpgradeBtn.addEventListener('click', handleUpgrade);
       closeUpgradeBtn.addEventListener('click', () => setShowUpgrade(false));
       upgradeModal.addEventListener('click', (event) => {
