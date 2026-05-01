@@ -299,6 +299,11 @@
         flex-wrap: wrap;
       }
 
+      .upgrade-cta-wrap {
+        display: inline-flex;
+        align-items: center;
+      }
+
       .upgrade-btn-primary {
         background: #16a34a;
         color: #fff;
@@ -312,6 +317,12 @@
       .upgrade-btn-primary:hover:not(:disabled) {
         background: #15803d;
         border-color: #15803d;
+      }
+
+      .upgrade-subtext {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 0.82rem;
       }
 
       .upgrade-btn-modal {
@@ -559,6 +570,11 @@
         .usage-cta-row {
           align-items: stretch;
         }
+
+        .upgrade-cta-wrap {
+          width: 100%;
+          justify-content: space-between;
+        }
       }
     </style>
   </head>
@@ -570,7 +586,7 @@
           <span class="tagline">AI QA Generator</span>
           <input id="emailInput" class="auth-email" type="email" placeholder="Enter email" />
           <button id="loginBtn" class="btn">Login / Signup</button>
-          <span id="planPill" class="plan-pill">Basic</span>
+          <span id="planPill" class="plan-pill">Free</span>
         </div>
       </header>
 
@@ -607,9 +623,19 @@
               <span>Generating test cases...</span>
             </div>
             <div class="usage-cta-row">
-              <div id="usageDisplay" class="usage">Remaining usage: 5/5</div>
+              <div id="usageDisplay" class="usage">Remaining free usage: 5/5</div>
+              <div class="upgrade-cta-wrap">
+                <button
+                  id="upgradeBtn"
+                  onClick="handleUpgrade()"
+                  class="btn upgrade-btn-primary"
+                >
+                  🚀 Upgrade to Pro - ₹99
+                </button>
+              </div>
             </div>
-            <div id="upgradeBanner" class="upgrade-banner">Daily limit reached. Upgrade to continue.</div>
+            <p class="upgrade-subtext">Unlock unlimited test cases for ₹99</p>
+            <div id="upgradeBanner" class="upgrade-banner">Upgrade to Pro for unlimited test cases at ₹99</div>
             <div id="error" class="error" role="alert"></div>
             <div id="status" class="status" aria-live="polite"></div>
           </div>
@@ -630,9 +656,9 @@
     </main>
     <div id="upgradeModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
       <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center modal">
-        <h2 id="upgradeTitle" class="text-xl font-bold mb-2">🚀 Upgrade to Pro</h2>
-        <p class="mb-3">You’ve reached your daily limit (5/day)</p>
-        <p class="text-sm mb-4">Upgrade to continue with unlimited test case generation and Excel download.</p>
+        <h2 id="upgradeTitle" class="text-xl font-bold mb-2">🚀 Upgrade to Pro - ₹99</h2>
+        <p class="mb-3">You’ve reached your free limit (5/day)</p>
+        <p class="text-sm mb-4">Unlock unlimited test cases + Excel download for just ₹99</p>
         <div class="modal-actions">
           <button id="whatsappUpgradeBtn" class="btn upgrade-btn-primary upgrade-btn-modal">Upgrade Now 🚀</button>
           <p class="text-xs text-gray-400 mt-2 text-center" style="margin: 8px 0 4px; font-size: 0.75rem; color: #9ca3af; text-align: center;">
@@ -661,6 +687,7 @@
       const saveBtn = document.getElementById('saveBtn');
       const importJiraBtn = document.getElementById('importJiraBtn');
       const pushJiraBtn = document.getElementById('pushJiraBtn');
+      const upgradeBtn = document.getElementById('upgradeBtn');
       const loading = document.getElementById('loading');
       const output = document.getElementById('output');
       const errorBox = document.getElementById('error');
@@ -699,7 +726,7 @@
 
       function updatePlanBadge(plan = 'free') {
         const normalized = plan === 'pro' ? 'pro' : 'free';
-        planPill.textContent = normalized === 'pro' ? 'PRO' : 'Basic';
+        planPill.textContent = normalized.toUpperCase();
         planPill.classList.toggle('pro', normalized === 'pro');
       }
 
@@ -759,10 +786,10 @@
 
       function updateRemainingUsage(remaining = DAILY_LIMIT) {
         if (remaining === 'unlimited') {
-          usageDisplay.textContent = 'Remaining usage: Unlimited';
+          usageDisplay.textContent = 'Pro plan active: unlimited usage';
           return;
         }
-        usageDisplay.textContent = `Remaining usage: ${remaining}/${DAILY_LIMIT}`;
+        usageDisplay.textContent = `Remaining free usage: ${remaining}/${DAILY_LIMIT}`;
       }
 
       function setLimitReached(limitReached) {
@@ -1262,6 +1289,7 @@
       saveBtn.addEventListener('click', saveCurrentToHistory);
       importJiraBtn.addEventListener('click', importFromJira);
       pushJiraBtn.addEventListener('click', pushToJira);
+      upgradeBtn.addEventListener('click', handleUpgrade);
       whatsappUpgradeBtn.addEventListener('click', handleUpgrade);
       closeUpgradeBtn.addEventListener('click', () => setShowUpgrade(false));
       upgradeModal.addEventListener('click', (event) => {
