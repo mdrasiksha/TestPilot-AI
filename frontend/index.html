@@ -65,6 +65,17 @@
         font-weight: 500;
       }
 
+      .nav-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .nav-link:hover {
+        text-decoration: underline;
+      }
+
       .topbar-right {
         display: flex;
         align-items: center;
@@ -584,6 +595,7 @@
         <h1 class="logo">TestPilot AI</h1>
         <div class="topbar-right">
           <span class="tagline">AI QA Generator</span>
+          <a class="nav-link" href="./pricing.html">Pricing</a>
           <input id="emailInput" class="auth-email" type="email" placeholder="Enter email" />
           <button id="loginBtn" class="btn">Login / Signup</button>
           <span id="planPill" class="plan-pill">Free</span>
@@ -1305,6 +1317,13 @@
       setLimitReached(false);
       setActionButtonsDisabled(true);
       setShowUpgrade(false);
+
+      const shouldTriggerUpgrade = new URLSearchParams(window.location.search).get("upgrade") === "1";
+      if (shouldTriggerUpgrade) {
+        handleUpgrade();
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+
       syncUserPlan();
     </script>
   </body>
