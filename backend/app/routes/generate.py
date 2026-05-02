@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 
 from app.services.ai_service import ai_service
-from app.services.subscription_store import get_user, usage_store
+from app.services.subscription_store import get_user_plan, usage_store
 
 router = APIRouter(tags=["generate"])
 
@@ -27,15 +27,8 @@ def generate(data: dict):
         if not user_story:
             raise HTTPException(status_code=400, detail="Missing prompt")
 
-        db_user = get_user(user_id)
-        is_pro_user = bool(
-            db_user
-            and db_user.plan_expiry
-            and db_user.plan_expiry > datetime.utcnow()
-        )
-
-        max_test_cases = 40 if is_pro_user else 10
-        plan_type = "PRO" if is_pro_user else "FREE"
+        user_plan = get_user_plan(user_id)
+        is_pro_user = user_plan == "pro"
 
         remaining: int | str = "unlimited"
         if not is_pro_user:
@@ -55,15 +48,8 @@ def generate(data: dict):
             user_data["count"] = int(user_data["count"]) + 1
             remaining = DAILY_LIMIT - int(user_data["count"])
 
-        result = ai_service.generate_test_cases(
-            user_story,
-            max_cases=max_test_cases,
-            full_coverage=is_pro_user,
-        )
-        if len(result) > max_test_cases:
-            result = result[:max_test_cases]
-
-        return {"data": result, "remaining": remaining, "plan": plan_type}
+        result = ai_service.generate_test_cases(user_story)
+        return {"data": result, "remaining": remaining, "plan": user_plan}
 
     except HTTPException as exc:
         print("API ERROR:", str(exc.detail))
