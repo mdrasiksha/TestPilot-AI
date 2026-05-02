@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Analytics Dashboard</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: sans-serif;
+      padding: 40px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      max-width: 760px;
+    }
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 18px;
+    }
+    .highlight {
+      background: #22c55e;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📊 Payment Analytics</h1>
+
+<div class="grid">
+  <div class="card">Upgrade Clicked: <span id="u">0</span></div>
+  <div class="card">Payment Started: <span id="s">0</span></div>
+  <div class="card">Success: <span id="c">0</span></div>
+  <div class="card">Failure: <span id="f">0</span></div>
+  <div class="card highlight">Conversion Rate: <span id="cr">0</span>%</div>
+</div>
+
+<script>
+fetch("/api/analytics-summary")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("u").innerText = data.upgrade_clicked;
+    document.getElementById("s").innerText = data.payment_started;
+    document.getElementById("c").innerText = data.payment_success;
+    document.getElementById("f").innerText = data.payment_failed;
+    document.getElementById("cr").innerText = data.conversion_rate;
+  })
+  .catch(() => {});
+</script>
+
+</body>
+</html>

@@ -48,6 +48,12 @@
 </div>
 
 <script>
+  fetch("/api/analytics-event", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event: "payment_failed" })
+  }).catch(() => {});
+
   function retry() {
     window.location.href = "/pricing.html";
   }
