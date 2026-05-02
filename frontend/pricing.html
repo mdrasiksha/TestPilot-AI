@@ -112,5 +112,19 @@
         </section>
       </div>
     </main>
-  </body>
+  
+    <script>
+      const trackUpgradeClick = () => {
+        fetch("/api/analytics-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event: "upgrade_clicked" })
+        }).catch(() => {});
+      };
+
+      document.querySelectorAll('a[href="./index.html?upgrade=1"]').forEach((link) => {
+        link.addEventListener("click", trackUpgradeClick);
+      });
+    </script>
+</body>
 </html>

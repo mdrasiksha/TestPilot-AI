@@ -7,8 +7,10 @@ import os
 
 import razorpay
 from fastapi import APIRouter, HTTPException, Request
+from collections import Counter
 from fastapi.responses import JSONResponse
 
+from app.services.analytics_store import get_all_events, track_event
 from app.services.subscription_store import (
     get_user,
     get_user_plan,
@@ -18,6 +20,41 @@ from app.services.subscription_store import (
 )
 
 router = APIRouter(tags=["subscription"])
+
+
+@router.post("/analytics-event", summary="Track analytics event")
+async def analytics_event(payload: dict):
+    event = str(payload.get("event") or "").strip()
+    allowed_events = {"upgrade_clicked", "payment_started", "payment_success", "payment_failed"}
+
+    if event not in allowed_events:
+        raise HTTPException(status_code=400, detail="Invalid analytics event")
+
+    track_event(event)
+    return {"status": "ok"}
+
+
+@router.get("/analytics-summary", summary="Payment analytics summary")
+async def analytics_summary():
+    events = get_all_events()
+    counter = Counter([e.event for e in events])
+
+    upgrade = counter.get("upgrade_clicked", 0)
+    started = counter.get("payment_started", 0)
+    success = counter.get("payment_success", 0)
+    failed = counter.get("payment_failed", 0)
+
+    conversion = 0
+    if started > 0:
+        conversion = (success / started) * 100
+
+    return {
+        "upgrade_clicked": upgrade,
+        "payment_started": started,
+        "payment_success": success,
+        "payment_failed": failed,
+        "conversion_rate": round(conversion, 2),
+    }
 
 
 @router.post("/auth/login", summary="Login or signup with email")
@@ -67,6 +104,8 @@ async def create_payment_link(payload: dict):
         email = user.email
     elif not user:
         upsert_user(user_id=user_id, email=email)
+
+    track_event("payment_started")
 
     razorpay_key_id = os.getenv("RAZORPAY_KEY_ID", "")
     razorpay_key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
@@ -145,6 +184,7 @@ async def razorpay_webhook(request: Request):
 
             if user and not user.is_paid:
                 set_user_pro(user_id)
+                track_event("payment_success")
         else:
             print("payment_link.paid webhook missing user_id in notes")
 
