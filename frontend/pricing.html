@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simple Pricing</title>
+    <title>TestPilot AI - Pricing</title>
     <style>
       :root {
         --primary: #2563eb;
@@ -23,50 +23,94 @@
         background: radial-gradient(circle at top, #eef4ff 0%, var(--background) 40%);
       }
       .shell { width: min(1080px, calc(100% - 40px)); margin: 28px auto 48px; }
+      .topbar { display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.72); border:1px solid #e2e8f080; backdrop-filter: blur(8px); border-radius:16px; padding:14px 18px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05); }
+      .topbar a { color: var(--primary); text-decoration: none; font-weight: 600; }
       .hero { text-align:center; margin: 34px 0 28px; }
       .hero h1 { margin:0; font-size: clamp(2rem, 4.5vw, 2.8rem); letter-spacing:-0.03em; }
+      .hero p { margin: 12px 0 0; color: var(--muted); font-size: 1.04rem; }
       .grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-      .card { background:var(--card); border:1px solid var(--border); border-radius:18px; box-shadow: var(--shadow-soft); padding:24px; }
+      .card { background:var(--card); border:1px solid var(--border); border-radius:18px; box-shadow: var(--shadow-soft); padding:24px; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+      .card:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12); }
+      .pro { border-color: #93c5fd; box-shadow: 0 0 0 1px rgba(37,99,235,.2), 0 20px 40px rgba(37,99,235,.14); }
+      .badge { display:inline-block; background:#dbeafe; color:#1e40af; border-radius:999px; padding:6px 10px; font-size:.75rem; font-weight:700; margin-bottom:10px; }
       h2 { margin: 0 0 6px; font-size: 1.35rem; }
       .price { font-size: 2rem; font-weight: 800; margin: 8px 0 14px; }
+      ul { margin: 0; padding-left: 18px; color: #1e293b; line-height: 1.7; }
       .btn { margin-top: 18px; width: 100%; border-radius: 10px; border:1px solid var(--border); background: #fff; color:#1e293b; font: inherit; font-weight: 600; padding: 11px 14px; cursor:pointer; }
-      .btn-primary { background:var(--primary); border-color: var(--primary); color:#fff; }
+      .btn:hover { background:#f8fafc; }
+      .btn-primary { background:var(--primary); border-color: var(--primary); color:#fff; box-shadow: 0 8px 18px rgba(37,99,235,.25); }
       .btn-primary:hover { background:var(--primary-hover); border-color:var(--primary-hover); }
+      .sections { margin-top: 30px; display:grid; gap:16px; }
+      .section { background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow: var(--shadow-soft); padding:22px; }
+      .cta { text-align:center; }
+      .cta .actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+      .cta .actions a { text-decoration:none; }
       @media (max-width: 860px){ .grid { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body>
     <main class="shell">
+      <header class="topbar">
+        <strong>TestPilot AI</strong>
+        <a href="./index.html">← Back to app</a>
+      </header>
       <section class="hero">
-        <h1>Simple Pricing</h1>
+        <h1>Simple, Transparent Pricing</h1>
+        <p>Start free. Upgrade when you need unlimited AI-generated test cases.</p>
       </section>
+
       <section class="grid">
         <article class="card">
           <h2>Free Plan</h2>
-          <div class="price">₹0</div>
+          <div class="price">₹0/month</div>
+          <ul>
+            <li>5 Test Case Generations</li>
+            <li>Basic Functional Scenarios</li>
+            <li>Limited Edge Cases</li>
+          </ul>
+          <a href="./index.html"><button class="btn">Start Free</button></a>
         </article>
-        <article class="card">
+
+        <article class="card pro">
+          <span class="badge">MOST POPULAR</span>
           <h2>Pro Plan</h2>
           <div class="price">₹99/month</div>
-          <button id="pay-btn" class="btn btn-primary">🚀 Upgrade to Pro – ₹99</button>
+          <ul>
+            <li>Unlimited Test Case Generation</li>
+            <li>Edge + Negative + Boundary Cases</li>
+            <li>Structured JSON Output</li>
+            <li>Automation-ready test cases</li>
+            <li>Faster generation</li>
+          </ul>
+          <a href="./index.html?upgrade=1"><button class="btn btn-primary">🚀 Upgrade to Pro</button></a>
         </article>
       </section>
+
+      <div class="sections">
+        <section class="section">
+          <h3>Why Upgrade?</h3>
+          <ul>
+            <li>Save hours of manual testing effort</li>
+            <li>Generate edge cases instantly</li>
+            <li>Improve QA coverage</li>
+            <li>Reduce bugs before production</li>
+          </ul>
+        </section>
+        <section class="section">
+          <h3>Trust & Flexibility</h3>
+          <ul>
+            <li>Secure payments via Razorpay</li>
+            <li>Cancel anytime</li>
+          </ul>
+        </section>
+        <section class="section cta">
+          <h3>Start Free → Upgrade Anytime</h3>
+          <div class="actions">
+            <a href="./index.html"><button class="btn">Start Free</button></a>
+            <a href="./index.html?upgrade=1"><button class="btn btn-primary">Upgrade to Pro</button></a>
+          </div>
+        </section>
+      </div>
     </main>
-    <script>
-      document.getElementById('pay-btn').onclick = async function () {
-        const stored = JSON.parse(localStorage.getItem('testpilot_user') || '{}');
-        const userId = stored.user_id || 'guest-user';
-        const email = stored.email || 'customer@testpilot.ai';
-
-        const res = await fetch('/api/create-payment-link', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: userId, email }),
-        });
-
-        const data = await res.json();
-        window.location.href = data.short_url;
-      };
-    </script>
   </body>
 </html>
