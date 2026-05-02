@@ -82,7 +82,8 @@ async def create_payment_link(payload: dict):
         "customer": {"email": email},
         "notify": {"email": True},
         "callback_method": "get",
-        "callback_url": "https://test-pilot-ai-lemon.vercel.app/payment-success",
+        "callback_url": "https://testpilotai.app/payment-success.html",
+        "reference_id": user_id,
         "notes": {
             "user_id": user_id,
             "plan": "pro",
@@ -132,8 +133,9 @@ async def razorpay_webhook(request: Request):
 
     if event == "payment_link.paid":
         entity = ((payload.get("payload") or {}).get("payment_link") or {}).get("entity") or {}
+        reference_id = entity.get("reference_id")
         notes = entity.get("notes") or {}
-        user_id = str(notes.get("user_id") or "").strip()
+        user_id = str(reference_id or notes.get("user_id") or "").strip()
 
         if user_id:
             user = get_user(user_id)
