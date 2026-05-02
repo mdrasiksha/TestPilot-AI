@@ -63,17 +63,10 @@
   }
 
   const params = new URLSearchParams(window.location.search);
-  const status = (params.get("razorpay_payment_link_status") || "").toLowerCase();
-  const statusMessage = document.getElementById("statusMessage");
+  const status = params.get("razorpay_payment_link_status");
 
-  if (status && status !== "paid") {
-    statusMessage.style.display = "block";
-    statusMessage.classList.add("status-warning");
-    statusMessage.textContent = "Payment is still processing or was not completed. Your Pro access is granted only after server-side webhook verification.";
-  } else {
-    statusMessage.style.display = "block";
-    statusMessage.classList.add("status-info");
-    statusMessage.textContent = "Your payment status is being securely verified by our backend webhook. No action needed.";
+  if (status !== "paid") {
+    window.location.href = "/payment-failure.html";
   }
 </script>
 

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Failed</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      font-family: sans-serif;
+      padding-top: 100px;
+    }
+    .box {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+    h1 {
+      color: #ef4444;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .retry {
+      background: #22c55e;
+      color: black;
+    }
+    .home {
+      background: #64748b;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h1>❌ Payment Failed</h1>
+  <p>Something went wrong or payment was cancelled.</p>
+  <p>Please try again.</p>
+
+<button class="retry" onclick="retry()">Retry Payment</button> <button class="home" onclick="goHome()">Go to Dashboard</button>
+
+</div>
+
+<script>
+  function retry() {
+    window.location.href = "/pricing.html";
+  }
+
+  function goHome() {
+    window.location.href = "/";
+  }
+</script>
+
+</body>
+</html>
