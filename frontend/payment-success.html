@@ -1,76 +1,81 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Payment Success - TestPilot AI</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: #f8fafc;
-        color: #0f172a;
-      }
-      .wrap {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
-      .card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 28px;
-        text-align: center;
-        max-width: 460px;
-        width: 100%;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-      }
-      .title {
-        margin: 0;
-        font-size: 1.5rem;
-      }
-      .subtitle {
-        margin: 10px 0 0;
-        color: #475569;
-      }
-      .btn {
-        margin-top: 20px;
-        border: 0;
-        background: #2563eb;
-        color: #fff;
-        border-radius: 10px;
-        padding: 10px 14px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <main class="wrap">
-      <section class="card">
-        <h1 id="title" class="title">Payment Status</h1>
-        <p id="subtitle" class="subtitle"></p>
-        <button class="btn" onclick="window.location.href='./index.html'">Go to Dashboard</button>
-      </section>
-    </main>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Success</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      font-family: sans-serif;
+      padding-top: 100px;
+      margin: 0;
+    }
+    .box {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 10px;
+      display: inline-block;
+      max-width: 540px;
+      margin: 0 16px;
+    }
+    .status-note {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .status-warning {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+    .status-info {
+      background: #0f766e;
+      color: #ccfbf1;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #22c55e;
+      border: none;
+      color: black;
+      cursor: pointer;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
 
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      const status = (params.get('razorpay_payment_link_status') || '').toLowerCase();
+<div class="box">
+  <h1>✅ Payment Successful</h1>
+  <p>🎉 You now have Pro access</p>
+  <p>🚀 Unlimited test cases unlocked</p>
+  <div id="statusMessage" class="status-note" style="display: none;"></div>
+  <button onclick="goHome()">Go to Dashboard</button>
+</div>
 
-      const title = document.getElementById('title');
-      const subtitle = document.getElementById('subtitle');
+<script>
+  function goHome() {
+    window.location.href = "/";
+  }
 
-      if (status === 'paid') {
-        title.textContent = '✅ Payment Successful';
-        subtitle.textContent = '🚀 Unlimited access unlocked';
-      } else {
-        title.textContent = 'Payment Pending';
-        subtitle.textContent = 'Your payment is being confirmed. Pro access will unlock after webhook verification.';
-      }
-    </script>
-  </body>
+  const params = new URLSearchParams(window.location.search);
+  const status = (params.get("razorpay_payment_link_status") || "").toLowerCase();
+  const statusMessage = document.getElementById("statusMessage");
+
+  if (status && status !== "paid") {
+    statusMessage.style.display = "block";
+    statusMessage.classList.add("status-warning");
+    statusMessage.textContent = "Payment is still processing or was not completed. Your Pro access is granted only after server-side webhook verification.";
+  } else {
+    statusMessage.style.display = "block";
+    statusMessage.classList.add("status-info");
+    statusMessage.textContent = "Your payment status is being securely verified by our backend webhook. No action needed.";
+  }
+</script>
+
+</body>
 </html>
