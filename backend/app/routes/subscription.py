@@ -82,7 +82,7 @@ async def create_payment_link(payload: dict):
         "customer": {"email": email},
         "notify": {"email": True},
         "callback_method": "get",
-        "callback_url": "https://test-pilot-ai-lemon.vercel.app/payment-success.html",
+        "callback_url": "https://test-pilot-ai-lemon.vercel.app/payment-success",
         "notes": {
             "user_id": user_id,
             "plan": "pro",
