@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
-import os
 
 
 @dataclass
@@ -11,7 +9,6 @@ class UserRecord:
     email: str
     is_paid: bool = False
     plan: str = "free"
-    plan_expiry: datetime | None = None
 
 
 users: dict[str, UserRecord] = {}
@@ -40,8 +37,6 @@ def get_user_plan(user_id: str) -> str:
     user = get_user(user_id)
     if not user:
         return "free"
-    if user.plan_expiry and user.plan_expiry > datetime.utcnow():
-        return "pro"
     if user.is_paid:
         return "pro"
     return user.plan
@@ -59,16 +54,10 @@ def set_user_pro(user_id: str) -> UserRecord | None:
     user = get_user(user_id)
     if not user:
         return None
-
-    duration_days = int(os.getenv("PRO_PLAN_DURATION_DAYS", "30"))
     user.is_paid = True
     user.plan = "pro"
-    user.plan_expiry = datetime.utcnow() + timedelta(days=duration_days)
     return user
 
 
 def user_to_dict(user: UserRecord) -> dict[str, str]:
-    user_data = asdict(user)
-    if user.plan_expiry:
-        user_data["plan_expiry"] = user.plan_expiry.isoformat()
-    return user_data
+    return asdict(user)
