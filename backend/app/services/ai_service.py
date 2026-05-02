@@ -148,7 +148,44 @@ def _normalize_and_validate_cases(test_cases: list[dict[str, Any]]) -> list[dict
     return deduplicated_cases
 
 
-def generate_test_cases(user_story: str) -> list[dict[str, Any]]:
+def build_prompt(requirement: str, max_cases: int, full_coverage: bool) -> str:
+    coverage_scope = "full" if full_coverage else "limited"
+    return f"""
+You are a senior QA engineer.
+
+Generate test cases for:
+{requirement}
+
+RULES:
+- Generate AT LEAST {max_cases} test cases
+- Do not stop early
+- Expand deeply
+- Coverage scope: {coverage_scope}
+
+Cover:
+- Functional
+- Negative
+- Edge cases
+- Boundary
+- Security
+- Performance
+
+Return ONLY valid JSON in this format:
+[
+  {{
+    \"id\": \"TC001\",
+    \"title\": \"string\",
+    \"steps\": [\"string\", \"string\", \"string\"],
+    \"expected_result\": \"string\",
+    \"priority\": \"High | Medium | Low\"
+  }}
+]
+
+Keep output concise but complete.
+"""
+
+
+def generate_test_cases(user_story: str, max_cases: int, full_coverage: bool) -> list[dict[str, Any]]:
     try:
         if not user_story or not str(user_story).strip():
             return []
@@ -157,46 +194,7 @@ def generate_test_cases(user_story: str) -> list[dict[str, Any]]:
             print("OPENAI ERROR: Missing OPENAI_API_KEY")
             return []
 
-        prompt = f"""
-You are a QA expert.
-
-Convert the user story into test cases.
-
-Return ONLY valid JSON in this format:
-
-[
-  {{
-    "id": "TC001",
-    "title": "string",
-    "steps": [
-      "Navigate to the page",
-      "Enter valid details",
-      "Verify successful outcome"
-    ],
-    "expected_result": "string",
-    "priority": "High | Medium | Low"
-  }}
-]
-
-Rules:
-- Generate at least 5 test cases
-- Use this exact structure for each case: ID | TITLE | STEPS | EXPECTED | PRIORITY
-- Title must be meaningful and descriptive; never use "Untitled test case"
-- Keep steps clear, sequential, and action-oriented (Click, Navigate, Select, Enter, Verify)
-- Put exactly one action per step; do not merge multiple actions in one step
-- Keep every detail from the source requirement; do not change meaning
-- Return "steps" as an array of strings only (not a single string)
-- Do not include bullets, numbering, or prefixes like "Step 1"
-- Ensure each test case has at least 3 steps
-- Include positive, negative, and edge cases
-- No explanation text
-- No markdown
-- No extra characters
-- Output must be pure JSON only
-
-User Story:
-{user_story}
-"""
+        prompt = build_prompt(user_story, max_cases=max_cases, full_coverage=full_coverage)
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -221,8 +219,8 @@ User Story:
 
 class AIService:
     @staticmethod
-    def generate_test_cases(user_story: str) -> list[dict[str, Any]]:
-        return generate_test_cases(user_story)
+    def generate_test_cases(user_story: str, max_cases: int, full_coverage: bool) -> list[dict[str, Any]]:
+        return generate_test_cases(user_story, max_cases=max_cases, full_coverage=full_coverage)
 
 
 ai_service = AIService()
