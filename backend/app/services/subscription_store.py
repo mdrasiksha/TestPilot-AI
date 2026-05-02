@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
 
 
 @dataclass
@@ -9,6 +10,7 @@ class UserRecord:
     email: str
     is_paid: bool = False
     plan: str = "free"
+    plan_expiry: datetime | None = None
 
 
 users: dict[str, UserRecord] = {}
@@ -37,6 +39,8 @@ def get_user_plan(user_id: str) -> str:
     user = get_user(user_id)
     if not user:
         return "free"
+    if user.plan_expiry and user.plan_expiry > datetime.utcnow():
+        return "pro"
     if user.is_paid:
         return "pro"
     return user.plan
@@ -50,12 +54,13 @@ def set_user_plan(user_id: str, plan: str) -> UserRecord | None:
     return user
 
 
-def set_user_pro(user_id: str) -> UserRecord | None:
+def set_user_pro(user_id: str, duration_days: int = 30) -> UserRecord | None:
     user = get_user(user_id)
     if not user:
         return None
     user.is_paid = True
     user.plan = "pro"
+    user.plan_expiry = datetime.utcnow() + timedelta(days=duration_days)
     return user
 
 
