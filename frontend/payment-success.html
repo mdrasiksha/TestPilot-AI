@@ -51,26 +51,12 @@
   <body>
     <main class="wrap">
       <section class="card">
-        <h1 id="title" class="title">Payment Status</h1>
-        <p id="subtitle" class="subtitle"></p>
-        <button class="btn" onclick="window.location.href='./index.html'">Go to Dashboard</button>
+        <h1 class="title">✅ Payment Successful</h1>
+        <p class="subtitle">You now have Pro access</p>
+        <button class="btn" onclick="window.location.href='/'">Go to Dashboard</button>
       </section>
     </main>
 
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      const status = (params.get('razorpay_payment_link_status') || '').toLowerCase();
-
-      const title = document.getElementById('title');
-      const subtitle = document.getElementById('subtitle');
-
-      if (status === 'paid') {
-        title.textContent = '✅ Payment Successful';
-        subtitle.textContent = '🚀 Unlimited access unlocked';
-      } else {
-        title.textContent = 'Payment Pending';
-        subtitle.textContent = 'Your payment is being confirmed. Pro access will unlock after webhook verification.';
-      }
-    </script>
+    
   </body>
 </html>
