@@ -82,7 +82,7 @@
             <li>Automation-ready test cases</li>
             <li>Faster generation</li>
           </ul>
-          <a href="./index.html?upgrade=1"><button class="btn btn-primary">🚀 Upgrade to Pro</button></a>
+          <a href="#" data-upgrade-link><button class="btn btn-primary">🚀 Upgrade to Pro</button></a>
         </article>
       </section>
 
@@ -107,7 +107,7 @@
           <h3>Start Free → Upgrade Anytime</h3>
           <div class="actions">
             <a href="./index.html"><button class="btn">Start Free</button></a>
-            <a href="./index.html?upgrade=1"><button class="btn btn-primary">Upgrade to Pro</button></a>
+            <a href="#" data-upgrade-link><button class="btn btn-primary">Upgrade to Pro</button></a>
           </div>
         </section>
       </div>
@@ -122,8 +122,58 @@
         }).catch(() => {});
       };
 
-      document.querySelectorAll('a[href="./index.html?upgrade=1"]').forEach((link) => {
-        link.addEventListener("click", trackUpgradeClick);
+      const getStoredUser = () => {
+        try {
+          const user = JSON.parse(localStorage.getItem("user") || "null");
+          return user && user.user_id ? user : null;
+        } catch (_error) {
+          return null;
+        }
+      };
+
+      const getUserId = () => {
+        const storedUserId = localStorage.getItem("user_id");
+        if (storedUserId) return storedUserId;
+        const generatedId = crypto.randomUUID();
+        localStorage.setItem("user_id", generatedId);
+        return generatedId;
+      };
+
+      const handleUpgradeClick = async (event) => {
+        event.preventDefault();
+        trackUpgradeClick();
+
+        const user = getStoredUser();
+        const payload = {
+          user_id: user?.user_id || getUserId(),
+          email: user?.email || ""
+        };
+
+        const response = await fetch("/api/create-payment-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Payment link creation failed (${response.status})`);
+        }
+
+        const payment = await response.json();
+        const paymentUrl = payment?.short_url || payment?.payment_link_url;
+        if (!paymentUrl) {
+          throw new Error("Payment link URL missing in response.");
+        }
+
+        window.location.href = paymentUrl;
+      };
+
+      document.querySelectorAll("a[data-upgrade-link]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          handleUpgradeClick(event).catch((error) => {
+            console.error(error);
+          });
+        });
       });
     </script>
 </body>
