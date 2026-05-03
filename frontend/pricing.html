@@ -82,7 +82,7 @@
             <li>Automation-ready test cases</li>
             <li>Faster generation</li>
           </ul>
-          <button id="pay-btn" class="btn btn-primary">🚀 Upgrade to Pro – ₹99</button>
+          <a href="#" data-upgrade-link><button class="btn btn-primary">🚀 Upgrade to Pro</button></a>
         </article>
       </section>
 
@@ -107,61 +107,73 @@
           <h3>Start Free → Upgrade Anytime</h3>
           <div class="actions">
             <a href="./index.html"><button class="btn">Start Free</button></a>
-            <button id="pay-btn-cta" class="btn btn-primary">🚀 Upgrade to Pro – ₹99</button>
+            <a href="#" data-upgrade-link><button class="btn btn-primary">Upgrade to Pro</button></a>
           </div>
         </section>
       </div>
     </main>
   
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const btn = document.getElementById("pay-btn");
-        const ctaBtn = document.getElementById("pay-btn-cta");
+      const trackUpgradeClick = () => {
+        fetch("/api/analytics-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event: "upgrade_clicked" })
+        }).catch(() => {});
+      };
 
-        if (!btn) {
-          console.error("Button not found");
-          return;
+      const getStoredUser = () => {
+        try {
+          const user = JSON.parse(localStorage.getItem("user") || "null");
+          return user && user.user_id ? user : null;
+        } catch (_error) {
+          return null;
+        }
+      };
+
+      const getUserId = () => {
+        const storedUserId = localStorage.getItem("user_id");
+        if (storedUserId) return storedUserId;
+        const generatedId = crypto.randomUUID();
+        localStorage.setItem("user_id", generatedId);
+        return generatedId;
+      };
+
+      const handleUpgradeClick = async (event) => {
+        event.preventDefault();
+        trackUpgradeClick();
+
+        const user = getStoredUser();
+        const payload = {
+          user_id: user?.user_id || getUserId(),
+          email: user?.email || ""
+        };
+
+        const response = await fetch("/api/create-payment-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Payment link creation failed (${response.status})`);
         }
 
-        const originalText = "🚀 Upgrade to Pro – ₹99";
-        const setLoading = (isLoading) => {
-          [btn, ctaBtn].forEach((node) => {
-            if (!node) return;
-            node.disabled = isLoading;
-            node.innerText = isLoading ? "Processing..." : originalText;
+        const payment = await response.json();
+        const paymentUrl = payment?.short_url || payment?.payment_link_url;
+        if (!paymentUrl) {
+          throw new Error("Payment link URL missing in response.");
+        }
+
+        window.location.href = paymentUrl;
+      };
+
+      document.querySelectorAll("a[data-upgrade-link]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          handleUpgradeClick(event).catch((error) => {
+            console.error(error);
           });
-        };
-
-        const handleUpgrade = async function () {
-          try {
-            console.log("Upgrade clicked");
-            setLoading(true);
-
-            const res = await fetch("https://testpilot-ai-ziwc.onrender.com/create-payment-link", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              }
-            });
-
-            const data = await res.json();
-            console.log("Response:", data);
-
-            if (data.short_url) {
-              window.location.href = data.short_url;
-            } else {
-              alert("Payment link failed");
-              setLoading(false);
-            }
-          } catch (error) {
-            console.error("Error:", error);
-            alert("Something went wrong");
-            setLoading(false);
-          }
-        };
-
-        btn.addEventListener("click", handleUpgrade);
-        if (ctaBtn) ctaBtn.addEventListener("click", handleUpgrade);
+        });
       });
     </script>
 </body>
