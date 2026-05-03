@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import json
 import os
+import uuid
 
 import razorpay
 from fastapi import APIRouter, HTTPException, Request
@@ -121,8 +122,8 @@ async def create_payment_link(payload: dict):
         "customer": {"email": email},
         "notify": {"email": True},
         "callback_method": "get",
-        "callback_url": "https://testpilotai.app/payment-success.html",
-        "reference_id": user_id,
+        "callback_url": "https://www.testpilotai.app/payment-success.html",
+        "reference_id": f"{user_id}_{uuid.uuid4()}",
         "notes": {
             "user_id": user_id,
             "plan": "pro",
@@ -174,7 +175,9 @@ async def razorpay_webhook(request: Request):
         entity = ((payload.get("payload") or {}).get("payment_link") or {}).get("entity") or {}
         reference_id = entity.get("reference_id")
         notes = entity.get("notes") or {}
-        user_id = str(reference_id or notes.get("user_id") or "").strip()
+        user_id = str(notes.get("user_id") or reference_id or "").strip()
+        if "_" in user_id and not notes.get("user_id"):
+            user_id = user_id.split("_", 1)[0]
 
         if user_id:
             user = get_user(user_id)
