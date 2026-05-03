@@ -636,14 +636,6 @@
             </div>
             <div class="usage-cta-row">
               <div id="usageDisplay" class="usage">Remaining free usage: 5/5</div>
-              <div class="upgrade-cta-wrap">
-                <button
-                  id="upgrade-btn"
-                  class="btn upgrade-btn-primary"
-                >
-                  🚀 Upgrade to Pro - ₹99
-                </button>
-              </div>
             </div>
             <p class="upgrade-subtext">Unlock unlimited test cases for ₹99</p>
             <div id="upgradeBanner" class="upgrade-banner">Upgrade to Pro for unlimited test cases at ₹99</div>
@@ -698,7 +690,6 @@
       const saveBtn = document.getElementById('saveBtn');
       const importJiraBtn = document.getElementById('importJiraBtn');
       const pushJiraBtn = document.getElementById('pushJiraBtn');
-      const upgradeBtn = document.getElementById('upgrade-btn');
       const loading = document.getElementById('loading');
       const output = document.getElementById('output');
       const errorBox = document.getElementById('error');
@@ -1300,7 +1291,6 @@
       saveBtn.addEventListener('click', saveCurrentToHistory);
       importJiraBtn.addEventListener('click', importFromJira);
       pushJiraBtn.addEventListener('click', pushToJira);
-      upgradeBtn.addEventListener('click', handleUpgrade);
       whatsappUpgradeBtn.addEventListener('click', handleUpgrade);
       closeUpgradeBtn.addEventListener('click', () => setShowUpgrade(false));
       upgradeModal.addEventListener('click', (event) => {
