@@ -94,11 +94,7 @@ async def create_payment_link(payload: dict):
 
     user = get_user(user_id)
     if user and user.is_paid:
-        return {
-            "short_url": "",
-            "payment_link_url": "",
-            "message": "User already on pro plan",
-        }
+        raise HTTPException(status_code=409, detail="User already on pro plan")
 
     if user and user.email:
         email = user.email
@@ -121,7 +117,7 @@ async def create_payment_link(payload: dict):
         "customer": {"email": email},
         "notify": {"email": True},
         "callback_method": "get",
-        "callback_url": "https://testpilotai.app/payment-success.html",
+        "callback_url": "https://www.testpilotai.app/payment-success.html",
         "reference_id": user_id,
         "notes": {
             "user_id": user_id,
@@ -132,16 +128,22 @@ async def create_payment_link(payload: dict):
     try:
         payment_link = client.payment_link.create(data=options)
     except Exception as exc:
+        print(f"RAZORPAY ERROR: {exc}")
         raise HTTPException(status_code=500, detail=f"Failed to create payment link: {exc}") from exc
 
+    print(f"RAZORPAY RESPONSE: {payment_link}")
     short_url = payment_link.get("short_url")
     if not short_url:
-        raise HTTPException(status_code=500, detail="Payment link short_url not found in Razorpay response")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "short_url missing",
+                "full_response": payment_link,
+            },
+        )
 
     return {
         "short_url": short_url,
-        "payment_link_url": short_url,
-        "payment_link_id": payment_link.get("id"),
     }
 
 
