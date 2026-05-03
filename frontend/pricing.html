@@ -147,9 +147,10 @@
             const data = await res.json();
             console.log("Response:", data);
 
-            if (data.short_url) {
+            if (data && data.short_url) {
               window.location.href = data.short_url;
             } else {
+              console.error("Backend error:", data);
               alert("Payment link failed");
               setLoading(false);
             }
