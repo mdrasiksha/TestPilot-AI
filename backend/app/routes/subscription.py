@@ -123,7 +123,7 @@ async def create_payment_link(payload: dict):
         "notify": {"email": True},
         "callback_method": "get",
         "callback_url": "https://www.testpilotai.app/payment-success.html",
-        "reference_id": f"{user_id}_{uuid.uuid4()}",
+        "reference_id": str(uuid.uuid4()),
         "notes": {
             "user_id": user_id,
             "plan": "pro",
@@ -132,18 +132,18 @@ async def create_payment_link(payload: dict):
 
     try:
         payment_link = client.payment_link.create(data=options)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to create payment link: {exc}") from exc
 
-    short_url = payment_link.get("short_url")
-    if not short_url:
-        raise HTTPException(status_code=500, detail="Payment link short_url not found in Razorpay response")
+        short_url = payment_link.get("short_url")
+        if not short_url:
+            return {"error": "Payment link short_url not found in Razorpay response"}
 
-    return {
-        "short_url": short_url,
-        "payment_link_url": short_url,
-        "payment_link_id": payment_link.get("id"),
-    }
+        return {
+            "short_url": short_url,
+            "payment_link_url": short_url,
+            "payment_link_id": payment_link.get("id"),
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @router.post("/webhook", summary="Razorpay webhook")
